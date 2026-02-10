@@ -116,7 +116,7 @@ export default function LoginPage() {
                             </div>
                         </div>
                         <p className="text-sm text-zinc-300 leading-relaxed">
-                            "La claridad en la comunicación es la base del éxito en cada entrega. Bienvenido."
+                            &quot;La claridad en la comunicación es la base del éxito en cada entrega. Bienvenido.&quot;
                         </p>
                     </div>
                 </div>

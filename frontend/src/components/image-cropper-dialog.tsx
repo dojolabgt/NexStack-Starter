@@ -15,6 +15,13 @@ interface ImageCropperDialogProps {
     onCropComplete: (croppedImage: string) => void;
 }
 
+interface Area {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
 export function ImageCropperDialog({
     open,
     onOpenChange,
@@ -23,7 +30,7 @@ export function ImageCropperDialog({
 }: ImageCropperDialogProps) {
     const [crop, setCrop] = useState({ x: 0, y: 0 });
     const [zoom, setZoom] = useState(1);
-    const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+    const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
     const [isCropping, setIsCropping] = useState(false);
 
     const onCropChange = useCallback((crop: { x: number; y: number }) => {
@@ -35,7 +42,7 @@ export function ImageCropperDialog({
     }, []);
 
     const onCropCompleteCallback = useCallback(
-        (croppedArea: any, croppedAreaPixels: any) => {
+        (croppedArea: Area, croppedAreaPixels: Area) => {
             setCroppedAreaPixels(croppedAreaPixels);
         },
         []
@@ -43,6 +50,7 @@ export function ImageCropperDialog({
 
     const handleCrop = async () => {
         try {
+            if (!croppedAreaPixels) return;
             setIsCropping(true);
             const croppedImage = await getCroppedImg(imageSrc, croppedAreaPixels);
             onCropComplete(croppedImage);

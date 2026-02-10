@@ -1,41 +1,38 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-
-export enum UserRole {
-    ADMIN = 'admin',
-    CLIENT = 'client',
-    TEAM = 'team',
-}
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { UserRole } from '../auth/constants/roles';
 
 @Entity('users')
 export class User {
-    @PrimaryGeneratedColumn('uuid')
-    id: string;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-    @Column({ unique: true })
-    email: string;
+  @Column({ unique: true })
+  email: string;
 
-    @Column()
-    password: string;
+  @Column()
+  password: string;
 
-    @Column()
-    name: string;
+  @Column()
+  name: string;
 
-    @Column({
-        type: 'enum',
-        enum: UserRole,
-        default: UserRole.CLIENT,
-    })
-    role: UserRole;
+  @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
+  role: UserRole;
 
-    @Column({ type: 'text', nullable: true })
-    refreshToken: string | null;
+  @Column({ type: 'text', nullable: true })
+  refreshToken: string | null;
 
-    @Column({ nullable: true })
-    profileImage: string;
+  @Column({ nullable: true })
+  profileImage: string;
 
-    @CreateDateColumn()
-    createdAt: Date;
+  @CreateDateColumn()
+  createdAt: Date;
 
-    @UpdateDateColumn()
-    updatedAt: Date;
+  @UpdateDateColumn()
+  updatedAt: Date;
 }

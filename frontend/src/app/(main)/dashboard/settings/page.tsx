@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Camera, Save, User as UserIcon, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Camera, Save, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ImageCropperDialog } from "@/components/image-cropper-dialog";
 import api from "@/lib/auth";
@@ -103,14 +103,16 @@ export default function SettingsPage() {
 
             setSuccessMessage("Foto de perfil actualizada correctamente");
             setTimeout(() => setSuccessMessage(""), 5000);
-        } catch (error: any) {
+        } catch (error) {
             console.error("Failed to update profile image:", error);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const err = error as any;
 
             let errorMsg = "Error al actualizar la foto de perfil.";
-            if (error.response?.status === 413) {
+            if (err.response?.status === 413) {
                 errorMsg = "La imagen es demasiado grande. Intenta con una más pequeña.";
-            } else if (error.response?.data?.message) {
-                errorMsg = error.response.data.message;
+            } else if (err.response?.data?.message) {
+                errorMsg = err.response.data.message;
             }
 
             setErrorMessage(errorMsg);
@@ -125,7 +127,7 @@ export default function SettingsPage() {
 
         try {
             // Only send name for non-admins, name and email for admins
-            const updateData: any = { name };
+            const updateData: Partial<User> = { name };
             if (user?.role === "admin") {
                 updateData.email = email;
             }
@@ -146,20 +148,22 @@ export default function SettingsPage() {
 
             setSuccessMessage("Perfil actualizado correctamente");
             setTimeout(() => setSuccessMessage(""), 5000);
-        } catch (error: any) {
+        } catch (error) {
             console.error("Failed to update profile:", error);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const err = error as any;
 
             // Handle specific error messages
             let errorMsg = "Error al actualizar el perfil. Intenta de nuevo.";
 
-            if (error.response?.status === 413) {
+            if (err.response?.status === 413) {
                 errorMsg = "La imagen es demasiado grande. Reduce el tamaño e intenta de nuevo.";
-            } else if (error.response?.status === 400) {
-                errorMsg = error.response?.data?.message || "Datos inválidos. Verifica la información.";
-            } else if (error.response?.status === 401) {
+            } else if (err.response?.status === 400) {
+                errorMsg = err.response?.data?.message || "Datos inválidos. Verifica la información.";
+            } else if (err.response?.status === 401) {
                 errorMsg = "Sesión expirada. Por favor, inicia sesión de nuevo.";
-            } else if (error.response?.data?.message) {
-                errorMsg = error.response.data.message;
+            } else if (err.response?.data?.message) {
+                errorMsg = err.response.data.message;
             }
 
             setErrorMessage(errorMsg);

@@ -55,22 +55,24 @@ export function LoginForm({ onSuccess, role = "client" }: LoginFormProps) {
             await new Promise(resolve => setTimeout(resolve, 500));
 
             if (onSuccess) onSuccess();
-        } catch (error: any) {
+        } catch (error) {
             console.error("Login failed:", error);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const err = error as any;
             let message = "Ocurrió un problema al iniciar sesión.";
 
             // Priority 1: Specific errors thrown manually (e.g. Role Validation)
-            if (error.message && !error.response) {
-                message = error.message;
+            if (err.message && !err.response) {
+                message = err.message;
             }
             // Priority 2: Backend response messages
-            else if (error.response?.data?.message) {
-                message = error.response.data.message;
+            else if (err.response?.data?.message) {
+                message = err.response.data.message;
                 if (message === "Unauthorized") message = "Email o contraseña incorrectos.";
             }
             // Priority 3: Network/Status errors
-            else if (error.message) {
-                if (error.response?.status === 401) message = "Email o contraseña incorrectos.";
+            else if (err.message) {
+                if (err.response?.status === 401) message = "Email o contraseña incorrectos.";
             }
 
             // Override strict "Unauthorized" or generic "Invalid credentials"

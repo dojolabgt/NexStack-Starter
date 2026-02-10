@@ -1,99 +1,120 @@
-import { Controller, Post, UseGuards, Req, Res, Get, UnauthorizedException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  UseGuards,
+  Req,
+  Res,
+  Get,
+  UnauthorizedException,
+  Logger,
+  HttpCode,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RefreshTokenGuard } from './guards/refresh-token.guard';
-import type { Response as ExpressResponse, Request as ExpressRequest } from 'express';
+import type { Response as ExpressResponse } from 'express';
+import type { RequestWithUser } from './interfaces/request-with-user.interface';
+import { AUTH_COOKIE, REFRESH_COOKIE } from './auth.constants';
+
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('auth')
 export class AuthController {
-    constructor(private authService: AuthService) { }
+  private readonly logger = new Logger(AuthController.name);
 
-    @UseGuards(LocalAuthGuard)
-    @Post('login')
-    async login(@Req() req: ExpressRequest, @Res() res: ExpressResponse) {
-        console.log('POST /auth/login called for user:', req.user);
-        const { accessToken, refreshToken } = await this.authService.login(req.user);
+  constructor(private authService: AuthService) { }
 
-        // Set Cookies
-        res.cookie('Authentication', accessToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            path: '/',
-            maxAge: 15 * 60 * 1000, // 15 mins
-        });
+  @UseGuards(LocalAuthGuard)
+  @Post('login')
+  @HttpCode(200)
+  async login(
+    @Req() req: RequestWithUser,
+    @Res({ passthrough: true }) res: ExpressResponse,
+  ) {
+    if (!req.user) {
+      throw new UnauthorizedException();
+    }
+    const { accessToken, refreshToken } = await this.authService.login(
+      req.user,
+    );
 
-        res.cookie('Refresh', refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            path: '/',
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        });
+    this.setAuthCookies(res, accessToken, refreshToken);
 
-        console.log('Cookies set successfully for user:', req.user?.['email']);
-        console.log('Access token (first 20 chars):', accessToken.substring(0, 20));
-        return res.send({ message: 'Login successful', user: req.user });
+    return { message: 'Login successful', user: req.user };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  async logout(
+    @Req() req: RequestWithUser,
+    @Res({ passthrough: true }) res: ExpressResponse,
+  ) {
+    if (req.user) {
+      await this.authService.logout(req.user.id);
+    }
+    res.clearCookie(AUTH_COOKIE, { path: '/' });
+    res.clearCookie(REFRESH_COOKIE, { path: '/' });
+    return { message: 'Logout successful' };
+  }
+
+  @UseGuards(RefreshTokenGuard)
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @Post('refresh')
+  async refresh(
+    @Req() req: RequestWithUser,
+    @Res({ passthrough: true }) res: ExpressResponse,
+  ) {
+    const refreshTokenCookie = req.cookies?.[REFRESH_COOKIE];
+    if (!req.user || !refreshTokenCookie) {
+      throw new UnauthorizedException('Access Denied');
+    }
+    const { accessToken, refreshToken } = await this.authService.refreshTokens(
+      req.user.id,
+      refreshTokenCookie,
+    );
+
+    this.setAuthCookies(res, accessToken, refreshToken);
+
+    return { message: 'Refresh successful' };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  async getMe(@Req() req: RequestWithUser) {
+    if (!req.user) {
+      throw new UnauthorizedException();
     }
 
-    @UseGuards(JwtAuthGuard)
-    @Post('logout')
-    async logout(@Req() req: any, @Res() res: ExpressResponse) {
-        if (req.user) {
-            await this.authService.logout(req.user.id);
-        }
-        res.clearCookie('Authentication', { path: '/' });
-        res.clearCookie('Refresh', { path: '/' });
-        return res.send({ message: 'Logout successful' });
+    const user = await this.authService.getUserById(req.user.id);
+    if (!user) {
+      this.logger.warn(`User ${req.user.id} not found in database`);
+      throw new UnauthorizedException();
     }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, refreshToken, ...result } = user;
+    return result;
+  }
 
-    @UseGuards(RefreshTokenGuard)
-    @Post('refresh')
-    async refresh(@Req() req: any, @Res() res: ExpressResponse) {
-        const { accessToken, refreshToken } = await this.authService.refreshTokens(
-            req.user.sub,
-            req.user.refreshToken,
-        );
-        // Set Cookies
-        res.cookie('Authentication', accessToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            path: '/',
-            maxAge: 15 * 60 * 1000, // 15 mins
-        });
+  private setAuthCookies(
+    res: ExpressResponse,
+    accessToken: string,
+    refreshToken: string,
+  ) {
+    res.cookie(AUTH_COOKIE, accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 15 * 60 * 1000, // 15 mins
+    });
 
-        res.cookie('Refresh', refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            path: '/',
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        });
-
-        return res.send({ message: 'Refresh successful' });
-    }
-
-    @UseGuards(JwtAuthGuard)
-    @Get('me')
-    async getMe(@Req() req: any) {
-        console.log('GET /auth/me called');
-        console.log('Cookies:', req.cookies);
-        console.log('User from JWT:', req.user);
-
-        const user = await this.authService.getUserById(req.user.id);
-        if (!user) {
-            console.log('User not found in database');
-            throw new UnauthorizedException();
-        }
-        const { password, refreshToken, ...result } = user;
-        console.log('Returning user:', result);
-        return result;
-    }
-
-    @Get('csrf')
-    getCsrfToken(@Req() req: ExpressRequest, @Res() res: ExpressResponse) {
-        return res.send({ csrfToken: 'CSRF_TOKEN_PLACEHOLDER' });
-    }
+    res.cookie(REFRESH_COOKIE, refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+  }
 }

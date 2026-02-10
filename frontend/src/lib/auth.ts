@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { User } from './users-service';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
@@ -12,7 +13,7 @@ const api = axios.create({
 
 export interface LoginResponse {
     message: string;
-    user: any;
+    user: User;
 }
 
 export const login = async (email: string, pass: string): Promise<LoginResponse> => {
@@ -31,15 +32,16 @@ export const checkAuth = async () => {
         console.log("Auth check success:", response.data);
         return response.data;
     } catch (error) {
-        console.error("Auth check failed:", error);
-        return null;
+        console.error("Auth check error:", error);
+        return false;
     }
 }
 
-// Interceptor to handle token refresh automatically
 api.interceptors.response.use(
-    (response) => response,
-    async (error) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (response: any) => response,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async (error: any) => {
         const originalRequest = error.config;
 
         // Don't try to refresh on login, refresh, or logout endpoints

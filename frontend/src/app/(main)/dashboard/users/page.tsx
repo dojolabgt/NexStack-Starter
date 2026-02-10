@@ -24,7 +24,7 @@ export default function UsersPage() {
                     // Not admin, redirect to dashboard
                     router.push("/dashboard");
                 }
-            } catch (error) {
+            } catch {
                 // Not authenticated, redirect to login
                 router.push("/login");
             } finally {

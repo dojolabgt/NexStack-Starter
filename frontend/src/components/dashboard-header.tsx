@@ -4,7 +4,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { Settings, Bell, Search, LogOut, ChevronDown, User as UserIcon } from "lucide-react";
 import Link from "next/link";
 import { Button } from "./ui/button";
-import { Input } from "./ui/input";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -23,7 +22,6 @@ const pageNames: Record<string, string> = {
 };
 
 interface DashboardHeaderProps {
-    onMenuClick?: () => void;
     user?: {
         name: string;
         email: string;
@@ -32,7 +30,7 @@ interface DashboardHeaderProps {
     } | null;
 }
 
-export function DashboardHeader({ onMenuClick, user }: DashboardHeaderProps) {
+export function DashboardHeader({ user }: DashboardHeaderProps) {
     const pathname = usePathname();
     const router = useRouter();
     const pageName = pageNames[pathname] || "Dashboard";

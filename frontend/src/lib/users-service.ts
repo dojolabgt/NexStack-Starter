@@ -9,14 +9,9 @@ export interface User {
     createdAt: string;
 }
 
-export interface CreateUserDto {
-    name: string;
-    email: string;
-    password?: string;
-    role: 'admin' | 'client' | 'team';
-}
+export type CreateUserDto = Omit<User, "id" | "createdAt"> & { password?: string };
 
-export interface UpdateUserDto extends Partial<CreateUserDto> { }
+export type UpdateUserDto = Partial<CreateUserDto>;
 
 export const getUsers = async (): Promise<User[]> => {
     const response = await api.get('/users');

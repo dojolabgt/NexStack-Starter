@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { User, getUsers } from "@/lib/users-service";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/common/Button"; // Use Common Button
+import { Input } from "@/components/common/Input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableContainer } from "@/components/common/Table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger, ContextMenuSeparator } from "@/components/ui/context-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -13,8 +13,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { UserDialog } from "./user-dialog";
 import { DeleteUserDialog } from "./delete-user-dialog";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/common/Badge";
 
 export function UsersTable() {
     const [users, setUsers] = useState<User[]>([]);
@@ -65,9 +64,9 @@ export function UsersTable() {
 
     const getRoleBadge = (role: string) => {
         const styles = {
-            admin: "bg-purple-50 text-purple-700 ring-1 ring-purple-600/20",
-            team: "bg-blue-50 text-blue-700 ring-1 ring-blue-600/20",
-            client: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-600/20"
+            admin: "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100",
+            team: "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100",
+            client: "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
         };
 
         const roleName = {
@@ -78,9 +77,9 @@ export function UsersTable() {
 
         const key = role as keyof typeof styles;
         return (
-            <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${styles[key] || "bg-gray-50 text-gray-600 ring-1 ring-gray-500/10"}`}>
+            <Badge variant="outline" className={`border ${styles[key] || "bg-gray-50 text-gray-600 border-gray-200"}`}>
                 {roleName[key] || role}
-            </span>
+            </Badge>
         );
     };
 
@@ -94,7 +93,7 @@ export function UsersTable() {
                     </div>
                     <Input
                         placeholder="Buscar usuarios..."
-                        className="pl-10 h-10 bg-gray-50/50 border-gray-200 focus-visible:ring-indigo-500/20 focus-visible:border-indigo-500 transition-all rounded-xl"
+                        className="pl-10"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -142,15 +141,15 @@ export function UsersTable() {
             </div>
 
             {/* Main Table Card */}
-            <Card className="border border-gray-100 shadow-xl shadow-gray-200/40 rounded-3xl overflow-hidden bg-white">
+            <TableContainer>
                 <Table>
                     <TableHeader>
-                        <TableRow className="hover:bg-transparent border-b border-gray-100 bg-gray-50/30">
-                            <TableHead className="font-semibold pl-6 h-12 text-xs uppercase tracking-wider text-gray-500">Usuario</TableHead>
-                            <TableHead className="font-semibold h-12 text-xs uppercase tracking-wider text-gray-500">Email</TableHead>
-                            <TableHead className="font-semibold h-12 text-xs uppercase tracking-wider text-gray-500">Rol</TableHead>
-                            <TableHead className="font-semibold h-12 text-xs uppercase tracking-wider text-gray-500">Fecha</TableHead>
-                            <TableHead className="w-[50px] h-12"></TableHead>
+                        <TableRow className="hover:bg-transparent border-b border-gray-100">
+                            <TableHead>Usuario</TableHead>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Rol</TableHead>
+                            <TableHead>Fecha</TableHead>
+                            <TableHead className="w-[50px]"></TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -179,8 +178,8 @@ export function UsersTable() {
                             paginatedUsers.map((user) => (
                                 <ContextMenu key={user.id}>
                                     <ContextMenuTrigger asChild>
-                                        <TableRow className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors group cursor-pointer">
-                                            <TableCell className="font-medium pl-6 py-4">
+                                        <TableRow className="group cursor-pointer">
+                                            <TableCell className="font-medium">
                                                 <div className="flex items-center gap-3">
                                                     <Avatar className="h-9 w-9 border border-gray-100 shadow-sm transition-transform group-hover:scale-105">
                                                         <AvatarImage src={user.profileImage || undefined} />
@@ -251,11 +250,11 @@ export function UsersTable() {
                             {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                                 <Button
                                     key={page}
-                                    variant={currentPage === page ? "default" : "ghost"}
+                                    variant={currentPage === page ? "primary" : "ghost"}
                                     size="sm"
                                     onClick={() => setCurrentPage(page)}
                                     className={`h-8 w-8 p-0 rounded-lg text-xs font-medium transition-all ${currentPage === page
-                                        ? "bg-zinc-900 text-white shadow-md shadow-zinc-900/10 hover:bg-zinc-800"
+                                        ? "shadow-md shadow-zinc-900/10"
                                         : "text-gray-500 hover:bg-white hover:text-gray-900"
                                         }`}
                                 >
@@ -265,7 +264,8 @@ export function UsersTable() {
                         </div>
                     </div>
                 )}
-            </Card>
+            </TableContainer>
+
 
             <UserDialog
                 open={isAddOpen}
@@ -286,6 +286,6 @@ export function UsersTable() {
                 userToDelete={deletingUser}
                 onSuccess={fetchUsers}
             />
-        </div>
+        </div >
     );
 }

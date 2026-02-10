@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import api from "@/lib/auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, FolderKanban, Activity, TrendingUp, Clock, ArrowUpRight, DollarSign, Wallet, Sparkles } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface User {
     email: string;

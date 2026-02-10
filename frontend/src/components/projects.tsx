@@ -9,17 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Lock, Unlock, Eye } from "lucide-react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
 import { getProjects } from "@/lib/api";
-
-interface Project {
-    title: string;
-    description: string;
-    image: string;
-    tags: string[];
-    link: string;
-    locked: boolean;
-}
 
 
 export function Projects() {
