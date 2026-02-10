@@ -1,43 +1,121 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import { Settings, Bell, Menu } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Settings, Bell, Search, LogOut, ChevronDown, User as UserIcon } from "lucide-react";
 import Link from "next/link";
 import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import api from "@/lib/auth";
 
 const pageNames: Record<string, string> = {
-    "/dashboard": "Dashboard",
+    "/dashboard": "Overview",
     "/dashboard/users": "Gestión de Usuarios",
     "/dashboard/settings": "Configuración",
 };
 
 interface DashboardHeaderProps {
-    onMenuClick: () => void;
+    onMenuClick?: () => void;
+    user?: {
+        name: string;
+        email: string;
+        role: string;
+        profileImage?: string;
+    } | null;
 }
 
-export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
+export function DashboardHeader({ onMenuClick, user }: DashboardHeaderProps) {
     const pathname = usePathname();
+    const router = useRouter();
     const pageName = pageNames[pathname] || "Dashboard";
 
+    const handleLogout = async () => {
+        try {
+            await api.post("/auth/logout");
+            router.push("/login");
+        } catch (error) {
+            console.error("Logout failed:", error);
+            router.push("/login");
+        }
+    };
+
     return (
-        <header className="h-16 border-b border-border/40 bg-card/50 backdrop-blur-sm sticky top-0 z-40">
-            <div className="h-full px-4 md:px-8 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="icon" className="md:hidden" onClick={onMenuClick}>
-                        <Menu className="h-5 w-5" />
-                    </Button>
-                    <h2 className="text-lg font-semibold">{pageName}</h2>
+        <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between w-full pb-4 border-b border-gray-100/50">
+            {/* Title Section */}
+            <div>
+                <h2 className="text-2xl font-bold tracking-tight text-zinc-900">{pageName}</h2>
+                <p className="text-sm text-zinc-500 hidden md:block">Bienvenido de nuevo a tu panel.</p>
+            </div>
+
+            {/* Right Actions */}
+            <div className="flex items-center gap-3 md:gap-6">
+                {/* Search Bar - Hidden on small mobile */}
+                <div className="hidden md:flex items-center bg-gray-50 rounded-full px-4 py-2 border border-gray-200 focus-within:ring-2 focus-within:ring-zinc-900/10 transition-all w-64">
+                    <Search className="h-4 w-4 text-gray-400 mr-2" />
+                    <input
+                        type="text"
+                        placeholder="Buscar..."
+                        className="bg-transparent border-none outline-none text-sm w-full placeholder:text-gray-400 text-gray-700"
+                    />
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" className="rounded-lg">
+                <div className="flex items-center gap-3">
+                    <Button variant="ghost" size="icon" className="rounded-full hover:bg-gray-100 text-gray-500 relative">
                         <Bell className="h-5 w-5" />
+                        <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
                     </Button>
-                    <Link href="/dashboard/settings">
-                        <Button variant="ghost" size="icon" className="rounded-lg">
-                            <Settings className="h-5 w-5" />
-                        </Button>
-                    </Link>
+
+                    {/* User Dropdown */}
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="rounded-full pl-2 pr-4 py-6 hover:bg-gray-100 flex items-center gap-3">
+                                <Avatar className="h-8 w-8 border border-gray-200">
+                                    <AvatarImage src={user?.profileImage || undefined} />
+                                    <AvatarFallback className="bg-zinc-900 text-white text-xs">
+                                        {user?.name?.charAt(0).toUpperCase() || "U"}
+                                    </AvatarFallback>
+                                </Avatar>
+                                <div className="hidden md:flex flex-col items-start">
+                                    <span className="text-sm font-semibold text-zinc-900 leading-none">{user?.name}</span>
+                                    <span className="text-[10px] text-zinc-500 capitalize leading-none mt-1">{user?.role}</span>
+                                </div>
+                                <ChevronDown className="h-3 w-3 text-zinc-400 ml-1" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-56 mt-2 rounded-xl shadow-xl shadow-gray-200/50 border-gray-100">
+                            <DropdownMenuLabel className="text-xs font-medium text-gray-500 uppercase tracking-wider px-3 py-2">
+                                Mi Cuenta
+                            </DropdownMenuLabel>
+                            <DropdownMenuItem asChild>
+                                <Link href="/dashboard/settings" className="flex items-center cursor-pointer p-2 rounded-lg hover:bg-gray-50 focus:bg-gray-50 text-gray-700">
+                                    <UserIcon className="mr-2 h-4 w-4 text-gray-500" />
+                                    <span>Perfil</span>
+                                </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                                <Link href="/dashboard/settings" className="flex items-center cursor-pointer p-2 rounded-lg hover:bg-gray-50 focus:bg-gray-50 text-gray-700">
+                                    <Settings className="mr-2 h-4 w-4 text-gray-500" />
+                                    <span>Configuración</span>
+                                </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator className="bg-gray-100 my-1" />
+                            <DropdownMenuItem
+                                onClick={handleLogout}
+                                className="flex items-center cursor-pointer p-2 rounded-lg hover:bg-red-50 focus:bg-red-50 text-red-600 focus:text-red-700 mt-1"
+                            >
+                                <LogOut className="mr-2 h-4 w-4" />
+                                <span>Cerrar Sesión</span>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </div>
         </header>

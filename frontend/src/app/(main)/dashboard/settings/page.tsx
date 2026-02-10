@@ -183,7 +183,7 @@ export default function SettingsPage() {
     const isAdmin = user.role === "admin";
 
     return (
-        <div className="space-y-8 max-w-4xl">
+        <div className="space-y-8">
             <div className="space-y-2">
                 <h1 className="text-4xl font-bold tracking-tight">Configuración</h1>
                 <p className="text-muted-foreground text-lg">

@@ -1,13 +1,36 @@
 "use client";
 
+import { useEffect } from "react";
 import { LoginForm } from "@/components/login-form";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { checkAuth } from "@/lib/auth";
 
 export default function LoginPage() {
     const router = useRouter();
+
+    useEffect(() => {
+        const verifySession = async () => {
+            try {
+                console.log("LoginPage: verifying session...");
+                const user = await checkAuth();
+                console.log("LoginPage: user result:", user);
+                // Strictly check for valid user object (e.g., must have an email or ID)
+                if (user && (user.email || user.id)) {
+                    console.log("LoginPage: redirecting to dashboard");
+                    router.replace("/dashboard"); // use replace to avoid history stacking
+                } else {
+                    console.log("LoginPage: no valid session found");
+                }
+            } catch (error) {
+                console.error("Session verification failed", error);
+                // Stay on login page
+            }
+        };
+        verifySession();
+    }, [router]);
 
     return (
         <div className="w-full min-h-screen lg:grid lg:grid-cols-[45%_55%]">

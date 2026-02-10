@@ -25,10 +25,15 @@ export const logout = async () => {
 };
 
 export const checkAuth = async () => {
-    // This endpoint doesn't exist yet but acts as a placeholder 
-    // for validation or we can just try to refresh if needed.
-    // For now, reliance on cookies is enough.
-    return true;
+    try {
+        console.log("Checking auth...");
+        const response = await api.get('/auth/me');
+        console.log("Auth check success:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("Auth check failed:", error);
+        return null;
+    }
 }
 
 // Interceptor to handle token refresh automatically
@@ -50,7 +55,7 @@ api.interceptors.response.use(
                 return api(originalRequest);
             } catch (refreshError) {
                 // Refresh failed, redirect to login or clear state
-                if (typeof window !== 'undefined') {
+                if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
                     // Clear any stored state and redirect if needed
                     window.location.href = '/login';
                 }
