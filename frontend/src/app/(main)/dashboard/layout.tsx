@@ -32,6 +32,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const pathname = usePathname();
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -48,6 +49,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
         fetchUser();
     }, [router]);
+
+    // Close mobile menu on route change
+    useEffect(() => {
+        setIsMobileMenuOpen(false);
+    }, [pathname]);
 
     const handleLogout = async () => {
         try {
@@ -83,8 +89,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/5">
+            {/* Mobile Overlay */}
+            {isMobileMenuOpen && (
+                <div
+                    className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                />
+            )}
+
             {/* Sidebar */}
-            <aside className="fixed inset-y-0 left-0 z-50 w-72 bg-card/98 backdrop-blur-sm border-r border-border/40 flex flex-col">
+            <aside className={cn(
+                "fixed inset-y-0 left-0 z-50 w-72 bg-card/98 backdrop-blur-sm border-r border-border/40 flex flex-col transition-transform duration-300 ease-in-out md:translate-x-0",
+                isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+            )}>
                 {/* Logo/Brand with gradient */}
                 <div className="p-6 border-b border-border/40">
                     <div className="flex items-center gap-3">
@@ -170,9 +187,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             </aside>
 
             {/* Main Content */}
-            <main className="pl-72 min-h-screen">
-                <DashboardHeader />
-                <div className="p-8">
+            <main className="pl-0 md:pl-72 min-h-screen transition-all duration-300 ease-in-out">
+                <DashboardHeader onMenuClick={() => setIsMobileMenuOpen(true)} />
+                <div className="p-4 md:p-8">
                     {children}
                 </div>
             </main>
