@@ -33,8 +33,8 @@ import { AuthModule } from './auth/auth.module';
     }),
     ThrottlerModule.forRoot([
       {
-        ttl: 60000,
-        limit: 10,
+        ttl: 60000, // 1 minute
+        limit: 100, // 100 requests per minute for general endpoints
       },
     ]),
     TypeOrmModule.forRootAsync({

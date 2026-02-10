@@ -17,7 +17,7 @@ import type { Response as ExpressResponse } from 'express';
 import type { RequestWithUser } from './interfaces/request-with-user.interface';
 import { AUTH_COOKIE, REFRESH_COOKIE } from './auth.constants';
 
-import { Throttle } from '@nestjs/throttler';
+import { Throttle, SkipThrottle } from '@nestjs/throttler';
 
 @Controller('auth')
 export class AuthController {
@@ -26,6 +26,7 @@ export class AuthController {
   constructor(private authService: AuthService) { }
 
   @UseGuards(LocalAuthGuard)
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('login')
   @HttpCode(200)
   async login(
@@ -80,6 +81,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @SkipThrottle()
   @Get('me')
   async getMe(@Req() req: RequestWithUser) {
     if (!req.user) {
