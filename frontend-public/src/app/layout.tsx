@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Inter, Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
-import { getSettings, type AppSettings } from "@/lib/settings-service";
+import { useSettings } from "@/hooks/useSettings"; // Use the hook instead of direct calls
 import { getImageUrl } from "@/lib/image-utils";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { TopLoader } from "@/components/ui/top-loader";
+import { Preloader } from "@/components/common/Preloader";
 
 const inter = Inter({
     variable: "--font-inter",
@@ -31,25 +32,7 @@ export default function RootLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    const [settings, setSettings] = useState<AppSettings | null>(null);
-
-    // Load settings
-    useEffect(() => {
-        const loadSettings = async () => {
-            try {
-                const data = await getSettings();
-                setSettings(data);
-            } catch (error) {
-                console.error("Failed to load settings:", error);
-            }
-        };
-
-        loadSettings();
-
-        // Poll for settings changes every 30 seconds
-        const interval = setInterval(loadSettings, 30000);
-        return () => clearInterval(interval);
-    }, []);
+    const { settings } = useSettings();
 
     // Update page title and favicon when settings change
     useEffect(() => {
@@ -58,7 +41,7 @@ export default function RootLayout({
         // Update page title
         document.title = settings.appName || "Dashboard App";
 
-        // Update favicon
+        // Update favicon (this logic is fine here, or could be moved to a separate component/hook)
         if (settings.appFavicon) {
             const faviconUrl = getImageUrl(settings.appFavicon);
 
@@ -86,6 +69,7 @@ export default function RootLayout({
             <body
                 className={`${inter.variable} ${generalSans.variable} ${geistMono.variable} font-body antialiased`}
             >
+                <Preloader />
                 <TopLoader />
                 <ErrorBoundary>
                     {children}
