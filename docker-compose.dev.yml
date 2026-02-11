@@ -53,5 +53,22 @@ services:
       - backend
     command: npm run dev
 
+  frontend-public:
+    build:
+      context: ./frontend-public
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3001:3000"
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+    volumes:
+      - ./frontend-public:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - backend
+    command: npm run dev
+
 volumes:
   postgres_data:
