@@ -9,12 +9,10 @@ async function bootstrap() {
   const usersService = app.get(UsersService);
 
   const configService = app.get(ConfigService);
-  const adminPassword =
-    configService.get<string>('SEED_ADMIN_PASSWORD') || 'admin123';
+  const adminPassword = configService.getOrThrow<string>('SEED_ADMIN_PASSWORD');
   const clientPassword =
-    configService.get<string>('SEED_CLIENT_PASSWORD') || 'client123';
-  const teamPassword =
-    configService.get<string>('SEED_TEAM_PASSWORD') || 'team123';
+    configService.getOrThrow<string>('SEED_CLIENT_PASSWORD');
+  const teamPassword = configService.getOrThrow<string>('SEED_TEAM_PASSWORD');
 
   const users = [
     {
@@ -42,7 +40,9 @@ async function bootstrap() {
     if (existingUser) {
       console.log(`⏭️  User ${userData.email} already exists.`);
       if (existingUser.role !== userData.role) {
-        await usersService.update(existingUser.id, { role: userData.role });
+        await usersService.updateByAdmin(existingUser.id, {
+          role: userData.role,
+        });
         console.log(
           `🔄 Updated role for ${userData.email} to ${userData.role}`,
         );

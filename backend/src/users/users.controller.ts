@@ -58,10 +58,18 @@ export class UsersController {
     @User() user: AuthenticatedUser,
     @Body() changePasswordDto: ChangePasswordDto,
   ) {
-    await this.usersService.changePassword(
-      user.id,
-      changePasswordDto.password,
-    );
+    try {
+      await this.usersService.changePassword(
+        user.id,
+        changePasswordDto.currentPassword,
+        changePasswordDto.password,
+      );
+    } catch (error) {
+      if (error.message === 'Invalid current password') {
+        throw new BadRequestException('Invalid current password');
+      }
+      throw error;
+    }
     return { message: 'Password updated successfully' };
   }
 

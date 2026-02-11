@@ -13,7 +13,7 @@ describe('Auth (e2e)', () => {
 
     const adminUser = {
         email: `auth_admin_${Date.now()}@test.com`,
-        password: 'password123',
+        password: 'TestAdmin123!',
         name: 'Auth Admin',
         role: UserRole.ADMIN,
     };
@@ -58,7 +58,7 @@ describe('Auth (e2e)', () => {
                 expect(res.body.message).toEqual('Login successful');
                 expect(res.body.user).toHaveProperty('email', adminUser.email);
                 // Expect cookies
-                const cookies = res.headers['set-cookie'];
+                const cookies = res.headers['set-cookie'] as unknown as string[];
                 expect(cookies).toBeDefined();
                 expect(
                     cookies.some((c) => c.startsWith('Authentication=')),

@@ -16,14 +16,14 @@ describe('Users (e2e)', () => {
 
     const adminUser = {
         email: `users_admin_${Date.now()}@test.com`,
-        password: 'password123',
+        password: 'TestAdmin123!',
         name: 'Users Admin',
         role: UserRole.ADMIN,
     };
 
     const newUser = {
         email: `testuser${Date.now()}@example.com`,
-        password: 'password123',
+        password: 'TestUser123!',
         name: 'Test User',
         role: 'user', // "user" role is what we expect to create via API
     };
@@ -60,7 +60,7 @@ describe('Users (e2e)', () => {
             .expect(200);
 
         // Extract cookie
-        const cookies = loginRes.headers['set-cookie'];
+        const cookies = loginRes.headers['set-cookie'] as unknown as string[];
         if (!cookies) throw new Error('No cookies returned for admin login');
 
         const authCookie = cookies.find((c) => c.startsWith('Authentication='));
@@ -86,10 +86,11 @@ describe('Users (e2e)', () => {
             })
             .expect(200);
 
-        const userCookies = userLoginRes.headers['set-cookie'];
+        const userCookies = userLoginRes.headers['set-cookie'] as unknown as string[];
         const userAuthCookie = userCookies.find((c) =>
             c.startsWith('Authentication='),
         );
+        if (!userAuthCookie) throw new Error('No Authentication cookie found for user login');
         userAccessToken = userAuthCookie.split(';')[0];
     });
 
@@ -129,13 +130,14 @@ describe('Users (e2e)', () => {
     });
 
     it('/users/change-password (PATCH)', async () => {
-        const newPassword = 'newpassword123';
+        const newPassword = 'NewPassword123!';
 
         // Change password
         await request(app.getHttpServer())
             .patch('/users/change-password')
             .set('Cookie', [userAccessToken])
             .send({
+                currentPassword: newUser.password,
                 password: newPassword,
             })
             .expect(200);

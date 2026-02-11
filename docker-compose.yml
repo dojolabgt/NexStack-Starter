@@ -41,6 +41,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    env_file: .env
     environment:
       - PORT=${PORT}
       - DATABASE_HOST=${DATABASE_HOST}
@@ -55,6 +56,9 @@ services:
       - STORAGE_TYPE=${STORAGE_TYPE}
       - UPLOAD_MAX_SIZE=${UPLOAD_MAX_SIZE}
       - ALLOWED_IMAGE_TYPES=${ALLOWED_IMAGE_TYPES}
+      - SEED_ADMIN_PASSWORD=${SEED_ADMIN_PASSWORD}
+      - SEED_CLIENT_PASSWORD=${SEED_CLIENT_PASSWORD}
+      - SEED_TEAM_PASSWORD=${SEED_TEAM_PASSWORD}
     depends_on:
       - postgres
     volumes:

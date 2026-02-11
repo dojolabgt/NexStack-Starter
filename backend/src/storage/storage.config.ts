@@ -4,28 +4,33 @@ import { join } from 'path';
  * Storage configuration
  * Centralized settings for file uploads and storage
  */
-export const storageConfig = {
-    // Base upload directory (relative to project root)
-    uploadDir: join(process.cwd(), 'uploads'),
+export class StorageConfig {
+    static get uploadDir(): string {
+        return join(process.cwd(), 'uploads');
+    }
 
-    // Maximum file size in bytes (default: 5MB)
-    maxFileSize: parseInt(process.env.UPLOAD_MAX_SIZE || '5242880', 10),
+    static get maxFileSize(): number {
+        return parseInt(process.env.UPLOAD_MAX_SIZE || '5242880', 10);
+    }
 
-    // Allowed image MIME types
-    allowedImageTypes: (
-        process.env.ALLOWED_IMAGE_TYPES || 'jpg,jpeg,png,webp,gif'
-    )
-        .split(',')
-        .map((type) => type.trim()),
+    static get allowedImageTypes(): string[] {
+        return (process.env.ALLOWED_IMAGE_TYPES || 'jpg,jpeg,png,webp,gif')
+            .split(',')
+            .map((type) => type.trim());
+    }
 
-    // Storage provider type
-    storageType: process.env.STORAGE_TYPE || 'local',
+    static get storageType(): string {
+        return process.env.STORAGE_TYPE || 'local';
+    }
 
-    // Folder names for different upload types
-    folders: {
-        profileImages: 'profile-images',
-        documents: 'documents',
-        temp: 'temp',
-        appAssets: 'app-assets',
-    },
-};
+    static get folders() {
+        return {
+            profileImages: 'profile-images',
+            documents: 'documents',
+            temp: 'temp',
+            appAssets: 'app-assets',
+        };
+    }
+}
+
+export const storageConfig = StorageConfig;

@@ -7,6 +7,7 @@ import {
     UseInterceptors,
     UploadedFile,
     BadRequestException,
+    UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { SettingsService } from './settings.service';
@@ -17,7 +18,11 @@ import { UserRole } from '../auth/constants/roles';
 import { imageFileFilter } from '../storage/validators/image-file.validator';
 import { storageConfig } from '../storage/storage.config';
 
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+
 @Controller('settings')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class SettingsController {
     constructor(private readonly settingsService: SettingsService) { }
 

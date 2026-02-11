@@ -15,8 +15,12 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+    it('should return app info', () => {
+      expect(appController.getHello()).toEqual({
+        name: 'API',
+        version: '1.0.0',
+        status: 'ok',
+      });
     });
   });
 });

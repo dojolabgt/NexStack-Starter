@@ -92,8 +92,26 @@ export class UsersService {
     return this.findOneById(id) as Promise<User>;
   }
 
-  async changePassword(id: string, password: string): Promise<void> {
-    const hashedPassword = await this.hashPassword(password);
+  async changePassword(
+    id: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<void> {
+    const foundUser = await this.findOneById(id);
+    if (!foundUser) {
+      throw new Error('User not found');
+    }
+    const user = await this.findOneByEmailWithPassword(foundUser.email);
+    if (!user || !user.password) {
+      throw new Error('User not found or has no password set');
+    }
+
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
+      throw new Error('Invalid current password'); // Controller should catch and throw Unauthorized/BadRequest
+    }
+
+    const hashedPassword = await this.hashPassword(newPassword);
     await this.usersRepository.update(id, { password: hashedPassword });
   }
 
@@ -105,12 +123,8 @@ export class UsersService {
   }
 
   // Helper for generic updates if strictly needed (e.g. from AuthService for refreshToken)
-  async update(id: string, updateData: Partial<User>): Promise<User> {
-    const dataToUpdate = { ...updateData };
-    if (dataToUpdate.password) {
-      dataToUpdate.password = await this.hashPassword(dataToUpdate.password);
-    }
-    await this.usersRepository.update(id, dataToUpdate);
+  async update(id: string, updateData: { refreshToken?: string | null }): Promise<User> {
+    await this.usersRepository.update(id, updateData);
     const user = await this.findOneById(id);
     if (!user) {
       throw new Error('User not found');
