@@ -12,11 +12,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CreateUserDto, UpdateUserDto, User, createUser, updateUser } from "@/lib/users-service";
 import { toast } from "sonner";
 
+import { UserRole } from "@/lib/types/enums";
+
 const userSchema = z.object({
     name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
     email: z.string().email("Email inválido"),
     password: z.string().optional(),
-    role: z.enum(["admin", "client", "team"]),
+    role: z.nativeEnum(UserRole),
 }).refine(() => {
     // If it's a new user (no ID logic inside here, but we can check if password is empty), password is required
     // Actually, passing `isEditing` to the schema is harder. Let's do validation in component or assume optional is fine and check manually.
@@ -39,7 +41,7 @@ export function UserDialog({ open, onOpenChange, userToEdit, onSuccess }: UserDi
     const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<UserFormValues>({
         resolver: zodResolver(userSchema),
         defaultValues: {
-            role: "client",
+            role: UserRole.USER,
         },
     });
 
@@ -56,7 +58,7 @@ export function UserDialog({ open, onOpenChange, userToEdit, onSuccess }: UserDi
                     name: "",
                     email: "",
                     password: "",
-                    role: "client",
+                    role: UserRole.USER,
                 });
             }
         }
@@ -129,16 +131,16 @@ export function UserDialog({ open, onOpenChange, userToEdit, onSuccess }: UserDi
                         <div className="space-y-2">
                             <Label htmlFor="role">Rol</Label>
                             <Select
-                                onValueChange={(val) => setValue("role", val as "admin" | "client" | "team")}
-                                defaultValue={userToEdit?.role || "client"}
+                                onValueChange={(val) => setValue("role", val as UserRole)}
+                                defaultValue={userToEdit?.role || UserRole.USER}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Selecciona" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="admin">Administrador</SelectItem>
-                                    <SelectItem value="team">Equipo</SelectItem>
-                                    <SelectItem value="client">Cliente</SelectItem>
+                                    <SelectItem value={UserRole.ADMIN}>Administrador</SelectItem>
+                                    <SelectItem value={UserRole.TEAM}>Equipo</SelectItem>
+                                    <SelectItem value={UserRole.USER}>Usuario</SelectItem>
                                 </SelectContent>
                             </Select>
                             {errors.role && <p className="text-xs font-medium text-red-500 animate-pulse">{errors.role.message}</p>}
