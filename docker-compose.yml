@@ -10,6 +10,8 @@ services:
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
     depends_on:
       - backend
+    restart: unless-stopped
+
   backend:
     build:
       context: ./backend
@@ -26,15 +28,19 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
       - FRONTEND_URL=${FRONTEND_URL}
+      - NODE_ENV=${NODE_ENV}
+      - STORAGE_TYPE=${STORAGE_TYPE}
+      - UPLOAD_MAX_SIZE=${UPLOAD_MAX_SIZE}
+      - ALLOWED_IMAGE_TYPES=${ALLOWED_IMAGE_TYPES}
     depends_on:
       - postgres
     volumes:
-      - ./backend:/app
-      - /app/node_modules
+      - uploads:/app/uploads
+    restart: unless-stopped
 
   postgres:
     image: postgres:15-alpine
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -46,3 +52,4 @@ services:
 
 volumes:
   postgres_data:
+  uploads:
