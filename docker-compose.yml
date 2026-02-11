@@ -9,6 +9,8 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+    networks:
+      - app-network
     # Dokploy handles port mapping via reverse proxy
     expose:
       - "3000"
@@ -36,6 +38,8 @@ services:
     volumes:
       - uploads:/app/uploads
     restart: unless-stopped
+    networks:
+      - app-network
     # Dokploy handles port mapping via reverse proxy
     expose:
       - "4000"
@@ -49,9 +53,15 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
     # Internal port only
     expose:
       - "5432"
+
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
   postgres_data:
