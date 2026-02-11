@@ -31,6 +31,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getImageUrl } from "@/lib/image-utils";
 import { getSettings, type AppSettings } from "@/lib/settings-service";
 import { useAuth } from "@/hooks/useAuth";
+import { AppBranding } from "@/components/common/AppBranding";
 
 interface User {
     id: string;
@@ -126,20 +127,11 @@ export default function DashboardLayout({
                         "flex items-center h-16 mb-6 mt-4 transition-all duration-300 shrink-0",
                         collapsed ? "justify-center px-0" : "px-6"
                     )}>
-                        {appLogo ? (
-                            <img
-                                src={appLogo}
-                                alt={appName}
-                                className="h-10 w-10 rounded-xl object-cover shrink-0 shadow-lg shadow-white/5"
-                            />
-                        ) : (
-                            <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-white/5">
-                                <Sparkles className="h-5 w-5 text-black" fill="currentColor" />
-                            </div>
-                        )}
-                        {!collapsed && (
-                            <span className="ml-3 font-bold text-xl tracking-tight">{appName}</span>
-                        )}
+                        <AppBranding
+                            variant={collapsed ? "compact" : "default"}
+                            showName={!collapsed}
+                            className="text-white"
+                        />
                     </div>
                 )}
 

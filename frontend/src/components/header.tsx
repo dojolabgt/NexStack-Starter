@@ -4,39 +4,14 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { LogIn } from "lucide-react";
-import { getSettings, type AppSettings } from "@/lib/settings-service";
-import { getImageUrl } from "@/lib/image-utils";
+import { AppBranding } from "@/components/common/AppBranding";
 
 export function Header() {
-    const [settings, setSettings] = useState<AppSettings | null>(null);
-
-    useEffect(() => {
-        const loadSettings = async () => {
-            try {
-                const data = await getSettings();
-                setSettings(data);
-            } catch (error) {
-                console.error("Failed to load settings:", error);
-            }
-        };
-        loadSettings();
-    }, []);
-
-    const appName = settings?.appName || "Pablo Lacán";
-    const appLogo = settings?.appLogo ? getImageUrl(settings.appLogo) : null;
-
     return (
         <header className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-border/40">
             <div className="container mx-auto flex h-16 items-center justify-between px-4">
-                <Link href="/" className="flex items-center gap-2 text-lg font-bold tracking-tight hover:opacity-80 transition-opacity">
-                    {appLogo && (
-                        <img
-                            src={appLogo}
-                            alt={appName}
-                            className="h-8 w-8 rounded object-cover"
-                        />
-                    )}
-                    <span>{appName}</span>
+                <Link href="/" className="hover:opacity-80 transition-opacity">
+                    <AppBranding variant="default" />
                 </Link>
 
                 <nav className="flex items-center gap-4">

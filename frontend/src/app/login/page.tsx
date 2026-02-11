@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { getSettings, type AppSettings } from "@/lib/settings-service";
 import { getImageUrl } from "@/lib/image-utils";
+import { AppBranding } from "@/components/common/AppBranding";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -53,16 +54,7 @@ export default function LoginPage() {
                 <div className="w-full max-w-sm space-y-6">
                     <div className="text-center space-y-2">
                         {/* Logo/Marca */}
-                        <div className="flex items-center justify-center gap-2 font-bold text-xl tracking-tight mb-4">
-                            {appLogo && (
-                                <img
-                                    src={appLogo}
-                                    alt={appName}
-                                    className="h-10 w-10 rounded object-cover"
-                                />
-                            )}
-                            <span>{appName}</span>
-                        </div>
+                        <AppBranding variant="login" className="justify-center mb-4" />
                         <h1 className="text-2xl font-bold tracking-tight">Acceso Corporativo</h1>
                         <p className="text-sm text-muted-foreground">
                             Selecciona tu tipo de cuenta para continuar.
