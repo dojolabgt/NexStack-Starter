@@ -36,7 +36,7 @@ const DialogContent = React.forwardRef<
         {children}
     </UiDialogContent>
 ));
-DialogContent.displayName = UiDialogContent.displayName;
+DialogContent.displayName = "DialogContent";
 
 const DialogHeader = ({
     className,
@@ -76,7 +76,7 @@ const DialogTitle = React.forwardRef<
         {...props}
     />
 ));
-DialogTitle.displayName = UiDialogTitle.displayName;
+DialogTitle.displayName = "DialogTitle";
 
 const DialogDescription = React.forwardRef<
     React.ElementRef<typeof UiDialogDescription>,
@@ -88,7 +88,7 @@ const DialogDescription = React.forwardRef<
         {...props}
     />
 ));
-DialogDescription.displayName = UiDialogDescription.displayName;
+DialogDescription.displayName = "DialogDescription";
 
 export {
     Dialog,
