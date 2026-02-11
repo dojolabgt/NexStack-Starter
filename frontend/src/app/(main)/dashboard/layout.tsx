@@ -26,9 +26,11 @@ import {
 import { cn } from "@/lib/utils";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { Button } from "@/components/ui/button";
-import api, { checkAuth } from "@/lib/auth";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getImageUrl } from "@/lib/image-utils";
+import { getSettings, type AppSettings } from "@/lib/settings-service";
+import { useAuth } from "@/hooks/useAuth";
 
 interface User {
     id: string;
@@ -45,36 +47,34 @@ export default function DashboardLayout({
 }) {
     const router = useRouter();
     const pathname = usePathname();
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
+
+    // Use centralized auth context instead of local state
+    const { user, isLoading: loading, logout: handleLogout } = useAuth();
+
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
+    const [settings, setSettings] = useState<AppSettings | null>(null);
 
-    // Fetch User
+    // Redirect to login if not authenticated
     useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                console.log("DashboardLayout: fetching user...");
-                const userData = await checkAuth();
-                console.log("DashboardLayout: user result:", userData);
+        if (!loading && !user) {
+            router.replace("/login");
+        }
+    }, [loading, user, router]);
 
-                if (userData && (userData.email || userData.id)) {
-                    setUser(userData);
-                } else {
-                    console.log("DashboardLayout: no valid user, redirecting to login");
-                    router.replace("/login");
-                }
+    // Load settings
+    useEffect(() => {
+        const loadSettings = async () => {
+            try {
+                const data = await getSettings();
+                setSettings(data);
             } catch (error) {
-                console.error("Failed to fetch user:", error);
-                router.replace("/login");
-            } finally {
-                setLoading(false);
+                console.error("Failed to load settings:", error);
             }
         };
-
-        fetchUser();
-    }, [router]);
+        loadSettings();
+    }, []);
 
     // Handle Responsiveness
     useEffect(() => {
@@ -93,15 +93,9 @@ export default function DashboardLayout({
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
-    const handleLogout = async () => {
-        try {
-            await api.post("/auth/logout");
-            router.push("/login");
-        } catch (error) {
-            console.error("Logout failed:", error);
-            router.push("/login");
-        }
-    };
+    // Define app branding variables
+    const appName = settings?.appName || "Pablo Lacán";
+    const appLogo = settings?.appLogo ? getImageUrl(settings.appLogo) : null;
 
     if (loading) {
         return (
@@ -116,6 +110,7 @@ export default function DashboardLayout({
     const allNavItems = [
         { href: "/dashboard", icon: LayoutDashboard, label: "Overview", roles: ["admin", "client", "team"] },
         { href: "/dashboard/users", icon: Users, label: "Usuarios", roles: ["admin"] },
+        { href: "/dashboard/app-settings", icon: Settings, label: "App Settings", roles: ["admin"] },
     ];
 
     const navItems = allNavItems.filter(item => item.roles.includes(user.role));
@@ -125,27 +120,51 @@ export default function DashboardLayout({
 
         return (
             <div className="flex flex-col h-full text-white w-full">
-                {/* Logo Area */}
-                <div className={cn(
-                    "h-20 flex items-center mb-4 transition-all duration-300 shrink-0",
-                    collapsed ? "justify-center px-0" : "px-6"
-                )}>
-                    <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-white/5">
-                        <Sparkles className="h-5 w-5 text-black" fill="currentColor" />
+                {/* Logo Area - Hidden on mobile drawer */}
+                {!ignoreCollapse && (
+                    <div className={cn(
+                        "flex items-center h-16 mb-6 mt-4 transition-all duration-300 shrink-0",
+                        collapsed ? "justify-center px-0" : "px-6"
+                    )}>
+                        {appLogo ? (
+                            <img
+                                src={appLogo}
+                                alt={appName}
+                                className="h-10 w-10 rounded-xl object-cover shrink-0 shadow-lg shadow-white/5"
+                            />
+                        ) : (
+                            <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-white/5">
+                                <Sparkles className="h-5 w-5 text-black" fill="currentColor" />
+                            </div>
+                        )}
+                        {!collapsed && (
+                            <span className="ml-3 font-bold text-xl tracking-tight">{appName}</span>
+                        )}
                     </div>
-                    {!collapsed && (
-                        <span className="ml-3 font-bold text-xl tracking-tight">Pablo Lacán</span>
-                    )}
-                </div>
+                )}
 
                 {/* Navigation */}
-                <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto scrollbar-hide">
+                <nav className={cn(
+                    "flex-1 px-3 py-0 space-y-1 overflow-y-auto scrollbar-hide",
+                    ignoreCollapse && "mt-4" // Add top margin when logo is hidden
+                )}>
                     {navItems.map((item) => {
-                        const isActive = pathname === item.href;
+                        // Special handling for /dashboard to avoid always being active
+                        const isActive = item.href === "/dashboard"
+                            ? pathname === "/dashboard"
+                            : pathname === item.href || pathname.startsWith(item.href + "/");
+                        const Icon = item.icon;
+
                         return (
                             <Link
                                 key={item.href}
                                 href={item.href}
+                                onClick={() => {
+                                    // Close mobile menu on navigation
+                                    if (isMobile) {
+                                        setIsMobileMenuOpen(false);
+                                    }
+                                }}
                                 className={cn(
                                     "flex items-center rounded-xl transition-all duration-200 group relative",
                                     collapsed ? "justify-center h-10 w-10 mx-auto" : "px-3 py-2.5",
@@ -207,7 +226,7 @@ export default function DashboardLayout({
                                 "data-[state=open]:bg-white/5"
                             )}>
                                 <Avatar className="h-9 w-9 border border-white/10 shrink-0">
-                                    <AvatarImage src={user.profileImage || undefined} />
+                                    <AvatarImage src={getImageUrl(user.profileImage)} />
                                     <AvatarFallback className="bg-zinc-800 text-white text-xs">
                                         {user.name.charAt(0).toUpperCase()}
                                     </AvatarFallback>
@@ -251,40 +270,48 @@ export default function DashboardLayout({
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
-                </div>
-            </div>
+                </div >
+            </div >
         )
     };
 
     return (
-        <div className="min-h-screen bg-zinc-950 flex font-sans selection:bg-primary/20 overflow-hidden relative">
-            {/* Mobile Header / Trigger */}
-            <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-zinc-950/80 backdrop-blur-md px-4 h-16 flex items-center justify-between border-b border-white/5">
+        <div className="min-h-screen bg-zinc-950 flex flex-col md:flex-row font-sans selection:bg-primary/20 overflow-hidden relative">
+            {/* Mobile Header - Fixed at top */}
+            <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-zinc-950 border-b border-white/5 px-4 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 bg-white rounded-lg flex items-center justify-center shadow-lg shadow-white/5">
-                        <Sparkles className="h-4 w-4 text-black" fill="currentColor" />
-                    </div>
-                    <span className="font-bold text-white tracking-tight">Pablo Lacán</span>
+                    {appLogo ? (
+                        <img
+                            src={appLogo}
+                            alt={appName}
+                            className="h-8 w-8 rounded-lg object-cover shadow-lg shadow-white/5"
+                        />
+                    ) : (
+                        <div className="h-8 w-8 bg-white rounded-lg flex items-center justify-center shadow-lg shadow-white/5">
+                            <Sparkles className="h-4 w-4 text-black" fill="currentColor" />
+                        </div>
+                    )}
+                    <span className="font-bold text-lg tracking-tight">{appName}</span>
                 </div>
-                <Button
-                    variant="ghost"
-                    size="icon"
+                <button
                     onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                    className="text-white hover:bg-white/10"
+                    className="p-2 rounded-lg hover:bg-white/5 transition-colors"
                 >
-                    {isMobileMenuOpen ? <X /> : <Menu />}
-                </Button>
+                    <Menu className="h-5 w-5 text-white" />
+                </button>
             </div>
 
             {/* Mobile Sidebar (Drawer) */}
             {isMobile && (
                 <div className={cn(
                     "fixed inset-0 z-40 bg-zinc-950/90 backdrop-blur-sm transition-opacity duration-300 md:hidden",
-                    isMobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-                )} onClick={() => setIsMobileMenuOpen(false)}>
+                    isMobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+                )}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                >
                     <div
                         className={cn(
-                            "absolute top-16 left-0 bottom-0 w-72 bg-zinc-950 border-r border-white/5 transition-transform duration-300 shadow-2xl",
+                            "fixed left-0 top-0 bottom-0 w-64 bg-zinc-950 border-r border-white/5 transition-transform duration-300 transform pt-16",
                             isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
                         )}
                         onClick={e => e.stopPropagation()}
@@ -305,10 +332,11 @@ export default function DashboardLayout({
             {/* Main Content Wrapper */}
             <div className={cn(
                 "flex-1 flex flex-col h-screen transition-all duration-300 ease-in-out relative",
+                "pt-16 md:pt-0", // Add padding top on mobile for fixed header
                 !isMobile && (isCollapsed ? "md:ml-16" : "md:ml-56")
             )}>
                 {/* Main Canvas (Scrollable) */}
-                <main className="flex-1 p-2 md:p-3 lg:p-4 pt-24 md:pt-[5.5rem] overflow-hidden">
+                <main className="flex-1 p-2 md:p-3 lg:p-4 md:pt-[1.5rem] overflow-hidden">
                     <div className="bg-white rounded-[2.5rem] shadow-xl shadow-zinc-200/50 h-full border border-zinc-100 relative flex flex-col overflow-hidden">
                         {/* Header Integrated */}
                         <div className="shrink-0 px-6 pt-6 md:px-8 md:pt-8 bg-white z-10">

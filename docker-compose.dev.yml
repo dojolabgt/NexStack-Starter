@@ -27,6 +27,9 @@ services:
       NODE_ENV: ${NODE_ENV}
       PORT: ${PORT}
       FRONTEND_URL: ${FRONTEND_URL}
+      STORAGE_TYPE: ${STORAGE_TYPE}
+      UPLOAD_MAX_SIZE: ${UPLOAD_MAX_SIZE}
+      ALLOWED_IMAGE_TYPES: ${ALLOWED_IMAGE_TYPES}
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -39,7 +42,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.dev
     ports:
-      - "3001:3000"
+      - "3000:3000"
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
     volumes:

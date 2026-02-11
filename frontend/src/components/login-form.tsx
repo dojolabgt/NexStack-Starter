@@ -2,6 +2,7 @@
 "use client";
 
 import { login } from "@/lib/auth";
+import { getErrorMessage, isAxiosError } from "@/lib/utils/type-guards";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,6 +12,9 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useRateLimit } from "@/hooks/useRateLimit";
+import { LOGIN_MAX_ATTEMPTS, LOGIN_RATE_LIMIT_WINDOW, LOGIN_BLOCK_DURATION } from "@/lib/constants";
 
 const loginSchema = z.object({
     email: z.string().email("Email inválido").min(1, "El email es requerido"),
@@ -26,6 +30,14 @@ interface LoginFormProps {
 
 export function LoginForm({ onSuccess, role = "client" }: LoginFormProps) {
     const [isLoading, setIsLoading] = useState(false);
+    const { refreshUser } = useAuth();
+
+    // Rate limiting to prevent brute force attacks
+    const rateLimit = useRateLimit({
+        maxAttempts: LOGIN_MAX_ATTEMPTS,
+        windowMs: LOGIN_RATE_LIMIT_WINDOW,
+        blockDurationMs: LOGIN_BLOCK_DURATION,
+    });
 
     const {
         register,
@@ -36,6 +48,16 @@ export function LoginForm({ onSuccess, role = "client" }: LoginFormProps) {
     });
 
     const onSubmit = async (data: LoginSchema) => {
+        // Check rate limit before attempting login
+        if (!rateLimit.canAttempt()) {
+            const remainingSeconds = Math.ceil(rateLimit.getRemainingTime() / 1000);
+            toast.error(
+                `Demasiados intentos fallidos. Espera ${remainingSeconds} segundos.`,
+                { duration: 5000 }
+            );
+            return;
+        }
+
         setIsLoading(true);
         try {
             const response = await login(data.email, data.password);
@@ -43,47 +65,41 @@ export function LoginForm({ onSuccess, role = "client" }: LoginFormProps) {
 
             // Validate Role vs Tab
             if (role === 'client' && userRole !== 'client') {
+                rateLimit.recordAttempt();
                 throw new Error("No tienes permisos para acceder al portal de Clientes.");
             }
             if (role === 'team' && userRole === 'client') {
+                rateLimit.recordAttempt();
                 throw new Error("No tienes permisos para acceder al portal del Equipo.");
             }
 
+            // Success - reset rate limit
+            rateLimit.reset();
             toast.success(`Bienvenido al portal de ${role === 'client' ? 'Clientes' : 'Equipo'}`);
 
-            // Wait a bit for cookies to be set before redirecting
-            await new Promise(resolve => setTimeout(resolve, 500));
+            // Refresh the auth context with the new user
+            await refreshUser();
+
+            // Wait a bit for state to update
+            await new Promise(resolve => setTimeout(resolve, 100));
 
             if (onSuccess) onSuccess();
         } catch (error) {
             console.error("Login failed:", error);
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const err = error as any;
-            let message = "Ocurrió un problema al iniciar sesión.";
 
-            // Priority 1: Specific errors thrown manually (e.g. Role Validation)
-            if (err.message && !err.response) {
-                message = err.message;
-            }
-            // Priority 2: Backend response messages
-            else if (err.response?.data?.message) {
-                message = err.response.data.message;
-                if (message === "Unauthorized") message = "Email o contraseña incorrectos.";
-            }
-            // Priority 3: Network/Status errors
-            else if (err.message) {
-                if (err.response?.status === 401) message = "Email o contraseña incorrectos.";
+            // Record failed attempt for rate limiting
+            rateLimit.recordAttempt();
+
+            // Show remaining attempts if getting close to limit
+            const remainingAttempts = LOGIN_MAX_ATTEMPTS - rateLimit.attempts;
+
+            let errorMessage = getErrorMessage(error);
+
+            if (remainingAttempts <= 2 && remainingAttempts > 0) {
+                errorMessage += ` (${remainingAttempts} intentos restantes)`;
             }
 
-            // Override strict "Unauthorized" or generic "Invalid credentials"
-            if (message === "Credenciales inválidas" || message.includes("Unauthorized")) {
-                message = "Email o contraseña incorrectos.";
-            }
-
-            toast.error(message, {
-                description: message.includes("permisos") ? undefined : "Por favor verifique sus datos e intente nuevamente.",
-                duration: 4000,
-            });
+            toast.error(errorMessage);
         } finally {
             setIsLoading(false);
         }

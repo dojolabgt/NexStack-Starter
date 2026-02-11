@@ -1,11 +1,17 @@
-import axios from 'axios';
+import axios, { AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { User } from './users-service';
+import { ApiErrorResponse } from './types/api.types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
+// Extend InternalAxiosRequestConfig to include _retry flag
+interface RetryableRequest extends InternalAxiosRequestConfig {
+    _retry?: boolean;
+}
+
 const api = axios.create({
     baseURL: API_URL,
-    withCredentials: true, // Important for HttpOnly cookies
+    withCredentials: true,
     headers: {
         'Content-Type': 'application/json',
     },
@@ -27,22 +33,19 @@ export const logout = async () => {
 
 export const checkAuth = async () => {
     try {
-        console.log("Checking auth...");
         const response = await api.get('/auth/me');
-        console.log("Auth check success:", response.data);
         return response.data;
     } catch (error) {
-        console.error("Auth check error:", error);
+        // Silent fail - user is not authenticated
+        // This is expected behavior on login page and public routes
         return false;
     }
 }
 
 api.interceptors.response.use(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (response: any) => response,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async (error: any) => {
-        const originalRequest = error.config;
+    (response: AxiosResponse) => response,
+    async (error: AxiosError<ApiErrorResponse>) => {
+        const originalRequest = error.config as RetryableRequest;
 
         // Don't try to refresh on login, refresh, or logout endpoints
         const skipRefreshUrls = ['/auth/login', '/auth/refresh', '/auth/logout'];

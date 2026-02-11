@@ -5,12 +5,15 @@ import { User } from './user.entity';
 import * as bcrypt from 'bcrypt';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { StorageService } from '../storage/storage.service';
+import { storageConfig } from '../storage/storage.config';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    private readonly storageService: StorageService,
   ) { }
 
   async findOneByEmail(email: string): Promise<User | null> {
@@ -116,7 +119,54 @@ export class UsersService {
   }
 
   async remove(id: string): Promise<void> {
+    // Get user to delete profile image if exists
+    const user = await this.findOneById(id);
+    if (user?.profileImage) {
+      try {
+        await this.storageService.delete(user.profileImage);
+      } catch (error) {
+        // Log but don't fail if image deletion fails
+        console.warn(
+          'Failed to delete profile image during user removal:',
+          error.message,
+        );
+      }
+    }
     await this.usersRepository.delete(id);
+  }
+
+  async uploadProfileImage(
+    userId: string,
+    file: Express.Multer.File,
+  ): Promise<User> {
+    // Get current user to delete old image
+    const user = await this.findOneById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Delete old profile image if exists
+    if (user.profileImage) {
+      try {
+        await this.storageService.delete(user.profileImage);
+      } catch (error) {
+        // Ignore errors when deleting old image (e.g., if it was a base64 URL or file doesn't exist)
+        console.warn('Failed to delete old profile image:', error.message);
+      }
+    }
+
+    // Upload new image
+    const uploadResult = await this.storageService.upload(
+      file,
+      storageConfig.folders.profileImages,
+    );
+
+    // Update user with new image URL
+    await this.usersRepository.update(userId, {
+      profileImage: uploadResult.url,
+    });
+
+    return this.findOneById(userId) as Promise<User>;
   }
 
   private async hashPassword(password: string): Promise<string> {

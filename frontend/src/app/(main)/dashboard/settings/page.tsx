@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ImageCropperDialog } from "@/components/image-cropper-dialog";
 import api from "@/lib/auth";
 import { useRouter } from "next/navigation";
+import { getImageUrl } from "@/lib/image-utils";
 
 interface User {
     id: string;
@@ -88,35 +89,48 @@ export default function SettingsPage() {
     };
 
     const handleCropComplete = async (croppedImage: string) => {
-        setProfileImage(croppedImage);
+        // Convert base64 to File object
+        const base64ToFile = async (base64String: string, filename: string): Promise<File> => {
+            const response = await fetch(base64String);
+            const blob = await response.blob();
+            return new File([blob], filename, { type: blob.type });
+        };
 
-        // Auto-save the profile image
         try {
-            await api.patch("/users/profile", {
-                profileImage: croppedImage
+            // Convert base64 to File
+            const file = await base64ToFile(croppedImage, 'profile-image.jpg');
+
+            // Create FormData
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Upload to new endpoint
+            const response = await api.post<User>('/users/profile-image', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
             });
 
-            // Refresh user data
-            const response = await api.get<User>("/auth/me");
+            // Update local state with server response
             setUser(response.data);
             setProfileImage(response.data.profileImage || null);
 
-            setSuccessMessage("Foto de perfil actualizada correctamente");
-            setTimeout(() => setSuccessMessage(""), 5000);
+            setSuccessMessage('Foto de perfil actualizada correctamente');
+            setTimeout(() => setSuccessMessage(''), 5000);
         } catch (error) {
-            console.error("Failed to update profile image:", error);
+            console.error('Failed to update profile image:', error);
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const err = error as any;
 
-            let errorMsg = "Error al actualizar la foto de perfil.";
+            let errorMsg = 'Error al actualizar la foto de perfil.';
             if (err.response?.status === 413) {
-                errorMsg = "La imagen es demasiado grande. Intenta con una más pequeña.";
+                errorMsg = 'La imagen es demasiado grande. Intenta con una más pequeña.';
             } else if (err.response?.data?.message) {
                 errorMsg = err.response.data.message;
             }
 
             setErrorMessage(errorMsg);
-            setTimeout(() => setErrorMessage(""), 7000);
+            setTimeout(() => setErrorMessage(''), 7000);
         }
     };
 
@@ -132,11 +146,7 @@ export default function SettingsPage() {
                 updateData.email = email;
             }
 
-            // Include profile image if it was changed
-            if (profileImage && profileImage !== user?.profileImage) {
-                updateData.profileImage = profileImage;
-            }
-
+            // Note: Profile image is now handled separately via /users/profile-image endpoint
             await api.patch("/users/profile", updateData);
 
             // Refresh user data
@@ -156,9 +166,7 @@ export default function SettingsPage() {
             // Handle specific error messages
             let errorMsg = "Error al actualizar el perfil. Intenta de nuevo.";
 
-            if (err.response?.status === 413) {
-                errorMsg = "La imagen es demasiado grande. Reduce el tamaño e intenta de nuevo.";
-            } else if (err.response?.status === 400) {
+            if (err.response?.status === 400) {
                 errorMsg = err.response?.data?.message || "Datos inválidos. Verifica la información.";
             } else if (err.response?.status === 401) {
                 errorMsg = "Sesión expirada. Por favor, inicia sesión de nuevo.";
@@ -221,7 +229,7 @@ export default function SettingsPage() {
                     {/* Profile Image */}
                     <div className="flex items-center gap-6">
                         <Avatar className="h-24 w-24">
-                            <AvatarImage src={profileImage || undefined} />
+                            <AvatarImage src={getImageUrl(profileImage)} />
                             <AvatarFallback className="text-2xl bg-gradient-to-br from-primary to-primary/80">
                                 {user.name.charAt(0).toUpperCase()}
                             </AvatarFallback>
@@ -241,7 +249,7 @@ export default function SettingsPage() {
                                 />
                             </Label>
                             <p className="text-xs text-muted-foreground">
-                                JPG, PNG o GIF. Máximo 2MB. (Solo preview por ahora)
+                                JPG, PNG, GIF o WebP. Máximo 5MB.
                             </p>
                         </div>
                     </div>

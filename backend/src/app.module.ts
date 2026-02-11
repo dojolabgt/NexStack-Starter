@@ -8,6 +8,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { StorageModule } from './storage/storage.module';
+import { SettingsModule } from './settings/settings.module';
 
 @Module({
   imports: [
@@ -29,6 +31,9 @@ import { AuthModule } from './auth/auth.module';
         SEED_ADMIN_PASSWORD: Joi.string().optional(),
         SEED_CLIENT_PASSWORD: Joi.string().optional(),
         SEED_TEAM_PASSWORD: Joi.string().optional(),
+        STORAGE_TYPE: Joi.string().valid('local', 's3', 'cloudinary').default('local'),
+        UPLOAD_MAX_SIZE: Joi.number().default(5242880),
+        ALLOWED_IMAGE_TYPES: Joi.string().default('jpg,jpeg,png,webp,gif'),
       }),
     }),
     ThrottlerModule.forRoot([
@@ -51,8 +56,10 @@ import { AuthModule } from './auth/auth.module';
       }),
       inject: [ConfigService],
     }),
+    StorageModule,
     UsersModule,
     AuthModule,
+    SettingsModule,
   ],
   controllers: [AppController],
   providers: [

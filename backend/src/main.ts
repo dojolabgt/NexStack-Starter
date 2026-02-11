@@ -4,16 +4,28 @@ import { ValidationPipe, Logger } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
+import * as bodyParser from 'body-parser';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  // Configure body parser with increased limit (for JSON payloads)
+  // Note: File uploads use multipart/form-data and bypass this limit
+  app.use(bodyParser.json({ limit: '10mb' }));
+  app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 
   // Enable cookie parser
   app.use(cookieParser());
 
-  // Enable helmet
-  app.use(helmet());
+  // Enable helmet with CORS policy for static files
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: 'cross-origin' }, // Allow images to be loaded from different origins
+    }),
+  );
 
   // Enable global validation pipe
   app.useGlobalPipes(
@@ -38,6 +50,13 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
     exposedHeaders: ['Set-Cookie'],
   });
+
+  // Serve static files from uploads directory
+  const uploadsPath = join(process.cwd(), 'uploads');
+  app.useStaticAssets(uploadsPath, {
+    prefix: '/uploads/',
+  });
+  logger.log(`Serving static files from: ${uploadsPath}`);
 
   const port = process.env.PORT ?? 4000;
   await app.listen(port);

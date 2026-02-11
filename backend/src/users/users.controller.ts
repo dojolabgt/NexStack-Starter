@@ -8,7 +8,11 @@ import {
   Delete,
   UseGuards,
   Request,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { User } from '../auth/decorators/user.decorator';
 import type { AuthenticatedUser } from '../auth/interfaces/authenticated-user.interface';
 import { UsersService } from './users.service';
@@ -20,6 +24,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../auth/constants/roles';
+import { imageFileFilter } from '../storage/validators/image-file.validator';
+import { storageConfig } from '../storage/storage.config';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -57,6 +63,31 @@ export class UsersController {
       changePasswordDto.password,
     );
     return { message: 'Password updated successfully' };
+  }
+
+  @Post('profile-image')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      fileFilter: imageFileFilter,
+      limits: { fileSize: storageConfig.maxFileSize },
+    }),
+  )
+  async uploadProfileImage(
+    @User() user: AuthenticatedUser,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('No se proporcionó ningún archivo');
+    }
+
+    const updatedUser = await this.usersService.uploadProfileImage(
+      user.id,
+      file,
+    );
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, refreshToken, ...result } = updatedUser;
+    return result;
   }
 
   @Get(':id')

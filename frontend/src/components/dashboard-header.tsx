@@ -13,12 +13,14 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getImageUrl } from "@/lib/image-utils";
 import api from "@/lib/auth";
 
 const pageNames: Record<string, string> = {
     "/dashboard": "Overview",
     "/dashboard/users": "Gestión de Usuarios",
     "/dashboard/settings": "Configuración",
+    "/dashboard/app-settings": "App Settings",
 };
 
 interface DashboardHeaderProps {
@@ -76,7 +78,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className="rounded-full pl-2 pr-4 py-6 hover:bg-gray-100 flex items-center gap-3">
                                 <Avatar className="h-8 w-8 border border-gray-200">
-                                    <AvatarImage src={user?.profileImage || undefined} />
+                                    <AvatarImage src={getImageUrl(user?.profileImage)} />
                                     <AvatarFallback className="bg-zinc-900 text-white text-xs">
                                         {user?.name?.charAt(0).toUpperCase() || "U"}
                                     </AvatarFallback>

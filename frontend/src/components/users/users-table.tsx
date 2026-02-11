@@ -8,21 +8,29 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCon
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger, ContextMenuSeparator } from "@/components/ui/context-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getImageUrl } from "@/lib/image-utils";
 import { MoreHorizontal, Plus, Search, Pencil, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { UserDialog } from "./user-dialog";
 import { DeleteUserDialog } from "./delete-user-dialog";
 import { Badge } from "@/components/common/Badge";
+import type { InputChangeEvent } from "@/lib/types/events.types";
+import { ITEMS_PER_PAGE, DEBOUNCE_DELAY } from "@/lib/constants";
+import { UserRole, UserRoleLabels, UserRoleBadgeStyles } from "@/lib/types/enums";
+import { useDebounce } from "@/hooks/useDebounce";
 
 export function UsersTable() {
     const [users, setUsers] = useState<User[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
 
+    // Debounce search query to reduce API calls
+    const debouncedSearchQuery = useDebounce(searchQuery, DEBOUNCE_DELAY);
+
     // Pagination State
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 7; // Fixed number of items per page
+    const itemsPerPage = ITEMS_PER_PAGE;
 
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -44,12 +52,15 @@ export function UsersTable() {
         fetchUsers();
     }, []);
 
-    // Filter Logic
-    const filteredUsers = users.filter(user =>
-        user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
+    // Filter users based on debounced search query
+    const filteredUsers = users.filter((user) => {
+        const query = debouncedSearchQuery.toLowerCase();
+        return (
+            user.name.toLowerCase().includes(query) ||
+            user.email.toLowerCase().includes(query) ||
+            UserRoleLabels[user.role as UserRole].toLowerCase().includes(query)
+        );
+    });
     // Pagination Logic
     const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
     const paginatedUsers = filteredUsers.slice(
@@ -63,22 +74,13 @@ export function UsersTable() {
     }, [searchQuery]);
 
     const getRoleBadge = (role: string) => {
-        const styles = {
-            admin: "bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100",
-            team: "bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100",
-            client: "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
-        };
+        const userRole = role as UserRole;
+        const style = UserRoleBadgeStyles[userRole] || "bg-gray-50 text-gray-600 border-gray-200";
+        const label = UserRoleLabels[userRole] || role;
 
-        const roleName = {
-            admin: "Administrador",
-            team: "Equipo",
-            client: "Cliente"
-        };
-
-        const key = role as keyof typeof styles;
         return (
-            <Badge variant="outline" className={`border ${styles[key] || "bg-gray-50 text-gray-600 border-gray-200"}`}>
-                {roleName[key] || role}
+            <Badge variant="outline" className={`border ${style}`}>
+                {label}
             </Badge>
         );
     };
@@ -86,8 +88,8 @@ export function UsersTable() {
     return (
         <div className="space-y-4">
             {/* Header / Search Toolbar */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-1 rounded-2xl">
-                <div className="relative w-full sm:w-72 group">
+            <div className="flex flex-col gap-4 bg-white p-1 rounded-2xl">
+                <div className="relative w-full group">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <Search className="h-4 w-4 text-gray-400 group-focus-within:text-indigo-500 transition-colors" />
                     </div>
@@ -95,13 +97,13 @@ export function UsersTable() {
                         placeholder="Buscar usuarios..."
                         className="pl-10"
                         value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onChange={(e: InputChangeEvent) => setSearchQuery(e.target.value)}
                     />
                 </div>
 
-                <div className="flex items-center gap-2 w-full sm:w-auto">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full">
                     {/* Top Simple Pagination */}
-                    <div className="flex items-center bg-white border border-gray-200 rounded-lg p-1 mr-2 shadow-sm">
+                    <div className="flex items-center justify-center bg-white border border-gray-200 rounded-lg p-1 shadow-sm">
                         <Button
                             variant="ghost"
                             size="icon"
@@ -133,7 +135,7 @@ export function UsersTable() {
 
                     <Button
                         onClick={() => setIsAddOpen(true)}
-                        className="h-10 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 shadow-lg shadow-zinc-900/20 px-4 w-full sm:w-auto"
+                        className="h-10 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 shadow-lg shadow-zinc-900/20 px-4 flex-1 sm:flex-initial"
                     >
                         <Plus className="mr-2 h-4 w-4" /> Nuevo Usuario
                     </Button>
@@ -182,7 +184,7 @@ export function UsersTable() {
                                             <TableCell className="font-medium">
                                                 <div className="flex items-center gap-3">
                                                     <Avatar className="h-9 w-9 border border-gray-100 shadow-sm transition-transform group-hover:scale-105">
-                                                        <AvatarImage src={user.profileImage || undefined} />
+                                                        <AvatarImage src={getImageUrl(user.profileImage)} />
                                                         <AvatarFallback className="bg-gradient-to-br from-indigo-50 to-white text-indigo-600 font-medium text-xs">
                                                             {user.name.slice(0, 2).toUpperCase()}
                                                         </AvatarFallback>

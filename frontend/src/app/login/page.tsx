@@ -1,36 +1,42 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { LoginForm } from "@/components/login-form";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { checkAuth } from "@/lib/auth";
+import { useAuth } from "@/hooks/useAuth";
+import { getSettings, type AppSettings } from "@/lib/settings-service";
+import { getImageUrl } from "@/lib/image-utils";
 
 export default function LoginPage() {
     const router = useRouter();
+    const { user, isLoading } = useAuth();
+    const [settings, setSettings] = useState<AppSettings | null>(null);
 
+    // Redirect to dashboard if already authenticated
     useEffect(() => {
-        const verifySession = async () => {
+        if (!isLoading && user) {
+            router.replace("/dashboard");
+        }
+    }, [isLoading, user, router]);
+
+    // Load settings for branding
+    useEffect(() => {
+        const loadSettings = async () => {
             try {
-                console.log("LoginPage: verifying session...");
-                const user = await checkAuth();
-                console.log("LoginPage: user result:", user);
-                // Strictly check for valid user object (e.g., must have an email or ID)
-                if (user && (user.email || user.id)) {
-                    console.log("LoginPage: redirecting to dashboard");
-                    router.replace("/dashboard"); // use replace to avoid history stacking
-                } else {
-                    console.log("LoginPage: no valid session found");
-                }
+                const data = await getSettings();
+                setSettings(data);
             } catch (error) {
-                console.error("Session verification failed", error);
-                // Stay on login page
+                console.error("Failed to load settings:", error);
             }
         };
-        verifySession();
-    }, [router]);
+        loadSettings();
+    }, []);
+
+    const appName = settings?.appName || "Pablo Lacán";
+    const appLogo = settings?.appLogo ? getImageUrl(settings.appLogo) : null;
 
     return (
         <div className="w-full min-h-screen lg:grid lg:grid-cols-[45%_55%]">
@@ -47,8 +53,15 @@ export default function LoginPage() {
                 <div className="w-full max-w-sm space-y-6">
                     <div className="text-center space-y-2">
                         {/* Logo/Marca */}
-                        <div className="font-bold text-xl tracking-tight mb-4">
-                            Pablo Lacán
+                        <div className="flex items-center justify-center gap-2 font-bold text-xl tracking-tight mb-4">
+                            {appLogo && (
+                                <img
+                                    src={appLogo}
+                                    alt={appName}
+                                    className="h-10 w-10 rounded object-cover"
+                                />
+                            )}
+                            <span>{appName}</span>
                         </div>
                         <h1 className="text-2xl font-bold tracking-tight">Acceso Corporativo</h1>
                         <p className="text-sm text-muted-foreground">
