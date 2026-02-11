@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { User, getUsers } from "@/lib/users-service";
 import { Button } from "@/components/common/Button"; // Use Common Button
 import { Input } from "@/components/common/Input";
@@ -88,8 +88,8 @@ export function UsersTable() {
     return (
         <div className="space-y-4">
             {/* Header / Search Toolbar */}
-            <div className="flex flex-col gap-4 bg-white p-1 rounded-2xl">
-                <div className="relative w-full group">
+            <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white p-2 rounded-2xl border border-gray-100 shadow-sm">
+                <div className="relative w-full md:w-72 group">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <Search className="h-4 w-4 text-gray-400 group-focus-within:text-indigo-500 transition-colors" />
                     </div>
@@ -101,8 +101,16 @@ export function UsersTable() {
                     />
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full">
-                    {/* Top Simple Pagination */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
+                    {/* New User Button - First */}
+                    <Button
+                        onClick={() => setIsAddOpen(true)}
+                        className="h-10 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 shadow-lg shadow-zinc-900/20 px-4 flex-1 sm:flex-initial"
+                    >
+                        <Plus className="mr-2 h-4 w-4" /> Nuevo Usuario
+                    </Button>
+
+                    {/* Pagination - Second */}
                     <div className="flex items-center justify-center bg-white border border-gray-200 rounded-lg p-1 shadow-sm">
                         <Button
                             variant="ghost"
@@ -132,25 +140,18 @@ export function UsersTable() {
                             </svg>
                         </Button>
                     </div>
-
-                    <Button
-                        onClick={() => setIsAddOpen(true)}
-                        className="h-10 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 shadow-lg shadow-zinc-900/20 px-4 flex-1 sm:flex-initial"
-                    >
-                        <Plus className="mr-2 h-4 w-4" /> Nuevo Usuario
-                    </Button>
                 </div>
             </div>
 
             {/* Main Table Card */}
             <TableContainer>
                 <Table>
-                    <TableHeader>
+                    <TableHeader className="hidden md:table-header-group">
                         <TableRow className="hover:bg-transparent border-b border-gray-100">
                             <TableHead>Usuario</TableHead>
                             <TableHead>Email</TableHead>
-                            <TableHead>Rol</TableHead>
-                            <TableHead>Fecha</TableHead>
+                            <TableHead className="text-center">Rol</TableHead>
+                            <TableHead className="text-right">Fecha</TableHead>
                             <TableHead className="w-[50px]"></TableHead>
                         </TableRow>
                     </TableHeader>
@@ -178,63 +179,111 @@ export function UsersTable() {
                             </TableRow>
                         ) : (
                             paginatedUsers.map((user) => (
-                                <ContextMenu key={user.id}>
-                                    <ContextMenuTrigger asChild>
-                                        <TableRow className="group cursor-pointer">
-                                            <TableCell className="font-medium">
-                                                <div className="flex items-center gap-3">
-                                                    <Avatar className="h-9 w-9 border border-gray-100 shadow-sm transition-transform group-hover:scale-105">
-                                                        <AvatarImage src={getImageUrl(user.profileImage)} />
-                                                        <AvatarFallback className="bg-gradient-to-br from-indigo-50 to-white text-indigo-600 font-medium text-xs">
-                                                            {user.name.slice(0, 2).toUpperCase()}
-                                                        </AvatarFallback>
-                                                    </Avatar>
-                                                    <span className="text-sm font-medium text-gray-700">{user.name}</span>
+                                <React.Fragment key={user.id}>
+                                    {/* Desktop View (Table Row) */}
+                                    <ContextMenu key={`desktop-${user.id}`}>
+                                        <ContextMenuTrigger asChild>
+                                            <TableRow className="group cursor-pointer hidden md:table-row">
+                                                <TableCell className="font-medium">
+                                                    <div className="flex items-center gap-3">
+                                                        <Avatar className="h-9 w-9 border border-gray-100 shadow-sm transition-transform group-hover:scale-105">
+                                                            <AvatarImage src={getImageUrl(user.profileImage)} />
+                                                            <AvatarFallback className="bg-gradient-to-br from-indigo-50 to-white text-indigo-600 font-medium text-xs">
+                                                                {user.name.slice(0, 2).toUpperCase()}
+                                                            </AvatarFallback>
+                                                        </Avatar>
+                                                        <span className="text-sm font-medium text-gray-700">{user.name}</span>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="text-sm text-gray-500">{user.email}</TableCell>
+                                                <TableCell className="text-center">{getRoleBadge(user.role)}</TableCell>
+                                                <TableCell className="text-sm text-gray-500 text-right">
+                                                    {format(new Date(user.createdAt), "dd MMM, yyyy", { locale: es })}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" className="h-8 w-8 p-0 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600">
+                                                                <MoreHorizontal className="h-4 w-4" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end" className="w-40 rounded-xl shadow-xl shadow-gray-200/50 border-gray-100">
+                                                            <DropdownMenuLabel className="text-xs text-gray-500 font-normal">Acciones</DropdownMenuLabel>
+                                                            <DropdownMenuItem onClick={() => setEditingUser(user)} className="cursor-pointer gap-2 text-gray-600 focus:text-indigo-600 focus:bg-indigo-50 rounded-lg mx-1">
+                                                                <Pencil className="h-3.5 w-3.5" /> Editar
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem
+                                                                onClick={() => setDeletingUser(user)}
+                                                                className="cursor-pointer gap-2 text-red-600 focus:text-red-700 focus:bg-red-50 rounded-lg mx-1 my-1"
+                                                            >
+                                                                <Trash2 className="h-3.5 w-3.5" /> Eliminar
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </TableCell>
+                                            </TableRow>
+                                        </ContextMenuTrigger>
+                                        <ContextMenuContent className="w-48 rounded-xl shadow-xl shadow-gray-200/50 border-gray-100 bg-white">
+                                            <ContextMenuItem onClick={() => setEditingUser(user)} className="cursor-pointer gap-2 text-gray-600 focus:text-indigo-600 focus:bg-indigo-50 rounded-lg mx-1 my-1">
+                                                <Pencil className="h-3.5 w-3.5" />
+                                                Editar Usuario
+                                            </ContextMenuItem>
+                                            <ContextMenuSeparator className="bg-gray-100" />
+                                            <ContextMenuItem
+                                                onClick={() => setDeletingUser(user)}
+                                                className="cursor-pointer gap-2 text-red-600 focus:text-red-700 focus:bg-red-50 rounded-lg mx-1 my-1"
+                                            >
+                                                <Trash2 className="h-3.5 w-3.5" />
+                                                Eliminar Usuario
+                                            </ContextMenuItem>
+                                        </ContextMenuContent>
+                                    </ContextMenu>
+
+                                    {/* Mobile View (Card) - Rendered as a single cell spanning all columns */}
+                                    <tr className="md:hidden border-b border-gray-100 last:border-0">
+                                        <td colSpan={5} className="p-4 block">
+                                            <div className="flex flex-col gap-3">
+                                                <div className="flex items-start justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <Avatar className="h-10 w-10 border border-gray-100 shadow-sm">
+                                                            <AvatarImage src={getImageUrl(user.profileImage)} />
+                                                            <AvatarFallback className="bg-gradient-to-br from-indigo-50 to-white text-indigo-600 font-medium text-xs">
+                                                                {user.name.slice(0, 2).toUpperCase()}
+                                                            </AvatarFallback>
+                                                        </Avatar>
+                                                        <div>
+                                                            <p className="font-medium text-gray-900">{user.name}</p>
+                                                            <p className="text-sm text-gray-500 break-all">{user.email}</p>
+                                                        </div>
+                                                    </div>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" className="h-8 w-8 p-0 rounded-full hover:bg-gray-100 text-gray-400">
+                                                                <MoreHorizontal className="h-4 w-4" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end" className="w-40 rounded-xl border-gray-100">
+                                                            <DropdownMenuItem onClick={() => setEditingUser(user)} className="gap-2">
+                                                                <Pencil className="h-3.5 w-3.5" /> Editar
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem onClick={() => setDeletingUser(user)} className="gap-2 text-red-600 focus:text-red-700 focus:bg-red-50">
+                                                                <Trash2 className="h-3.5 w-3.5" /> Eliminar
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
                                                 </div>
-                                            </TableCell>
-                                            <TableCell className="text-sm text-gray-500">{user.email}</TableCell>
-                                            <TableCell>{getRoleBadge(user.role)}</TableCell>
-                                            <TableCell className="text-sm text-gray-500">
-                                                {format(new Date(user.createdAt), "dd MMM, yyyy", { locale: es })}
-                                            </TableCell>
-                                            <TableCell>
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" className="h-8 w-8 p-0 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600">
-                                                            <MoreHorizontal className="h-4 w-4" />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end" className="w-40 rounded-xl shadow-xl shadow-gray-200/50 border-gray-100">
-                                                        <DropdownMenuLabel className="text-xs text-gray-500 font-normal">Acciones</DropdownMenuLabel>
-                                                        <DropdownMenuItem onClick={() => setEditingUser(user)} className="cursor-pointer gap-2 text-gray-600 focus:text-indigo-600 focus:bg-indigo-50 rounded-lg mx-1">
-                                                            <Pencil className="h-3.5 w-3.5" /> Editar
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem
-                                                            onClick={() => setDeletingUser(user)}
-                                                            className="cursor-pointer gap-2 text-red-600 focus:text-red-700 focus:bg-red-50 rounded-lg mx-1 my-1"
-                                                        >
-                                                            <Trash2 className="h-3.5 w-3.5" /> Eliminar
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            </TableCell>
-                                        </TableRow>
-                                    </ContextMenuTrigger>
-                                    <ContextMenuContent className="w-48 rounded-xl shadow-xl shadow-gray-200/50 border-gray-100 bg-white">
-                                        <ContextMenuItem onClick={() => setEditingUser(user)} className="cursor-pointer gap-2 text-gray-600 focus:text-indigo-600 focus:bg-indigo-50 rounded-lg mx-1 my-1">
-                                            <Pencil className="h-3.5 w-3.5" />
-                                            Editar Usuario
-                                        </ContextMenuItem>
-                                        <ContextMenuSeparator className="bg-gray-100" />
-                                        <ContextMenuItem
-                                            onClick={() => setDeletingUser(user)}
-                                            className="cursor-pointer gap-2 text-red-600 focus:text-red-700 focus:bg-red-50 rounded-lg mx-1 my-1"
-                                        >
-                                            <Trash2 className="h-3.5 w-3.5" />
-                                            Eliminar Usuario
-                                        </ContextMenuItem>
-                                    </ContextMenuContent>
-                                </ContextMenu>
+                                                <div className="flex items-center justify-between pt-2 border-t border-gray-50">
+                                                    <div className="flex items-center gap-2">
+                                                        {getRoleBadge(user.role)}
+                                                    </div>
+                                                    <span className="text-xs text-gray-400">
+                                                        {format(new Date(user.createdAt), "dd MMM, yyyy", { locale: es })}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </React.Fragment>
                             ))
                         )}
                     </TableBody>

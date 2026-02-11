@@ -61,13 +61,13 @@ export default function LoginPage() {
                         </p>
                     </div>
 
-                    <Tabs defaultValue="client" className="w-full">
+                    <Tabs defaultValue="user" className="w-full">
                         <TabsList className="grid w-full grid-cols-2 mb-4">
-                            <TabsTrigger value="client">Clientes</TabsTrigger>
+                            <TabsTrigger value="user">Clientes</TabsTrigger>
                             <TabsTrigger value="team">Equipo</TabsTrigger>
                         </TabsList>
-                        <TabsContent value="client">
-                            <LoginForm role="client" onSuccess={() => router.push("/dashboard")} />
+                        <TabsContent value="user">
+                            <LoginForm role="user" onSuccess={() => router.push("/dashboard")} />
                             <p className="mt-4 text-center text-xs text-muted-foreground">
                                 Acceso para revisión de entregables y gestión de proyectos.
                             </p>

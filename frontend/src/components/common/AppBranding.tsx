@@ -50,7 +50,7 @@ export function AppBranding({
                 />
             )}
             {showName && (
-                <span className={`font-bold text-gray-900 ${textSize}`}>
+                <span className={`font-bold ${textSize}`}>
                     {settings?.appName || 'Dashboard'}
                 </span>
             )}

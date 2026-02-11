@@ -25,10 +25,10 @@ type LoginSchema = z.infer<typeof loginSchema>;
 
 interface LoginFormProps {
     onSuccess?: () => void;
-    role?: "client" | "team";
+    role?: "user" | "team";
 }
 
-export function LoginForm({ onSuccess, role = "client" }: LoginFormProps) {
+export function LoginForm({ onSuccess, role = "user" }: LoginFormProps) {
     const [isLoading, setIsLoading] = useState(false);
     const { refreshUser } = useAuth();
 
@@ -64,18 +64,18 @@ export function LoginForm({ onSuccess, role = "client" }: LoginFormProps) {
             const userRole = response.user.role;
 
             // Validate Role vs Tab
-            if (role === 'client' && userRole !== 'client') {
+            if (role === 'user' && userRole !== 'user') {
                 rateLimit.recordAttempt();
                 throw new Error("No tienes permisos para acceder al portal de Clientes.");
             }
-            if (role === 'team' && userRole === 'client') {
+            if (role === 'team' && userRole === 'user') {
                 rateLimit.recordAttempt();
                 throw new Error("No tienes permisos para acceder al portal del Equipo.");
             }
 
             // Success - reset rate limit
             rateLimit.reset();
-            toast.success(`Bienvenido al portal de ${role === 'client' ? 'Clientes' : 'Equipo'}`);
+            toast.success(`Bienvenido al portal de ${role === 'user' ? 'Clientes' : 'Equipo'}`);
 
             // Refresh the auth context with the new user
             await refreshUser();

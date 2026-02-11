@@ -8,7 +8,7 @@
 export enum UserRole {
     ADMIN = 'admin',
     TEAM = 'team',
-    CLIENT = 'client',
+    USER = 'user',
 }
 
 /**
@@ -17,7 +17,7 @@ export enum UserRole {
 export const UserRoleLabels: Record<UserRole, string> = {
     [UserRole.ADMIN]: 'Administrador',
     [UserRole.TEAM]: 'Equipo',
-    [UserRole.CLIENT]: 'Usuario',
+    [UserRole.USER]: 'Usuario',
 };
 
 /**
@@ -26,7 +26,7 @@ export const UserRoleLabels: Record<UserRole, string> = {
 export const UserRoleBadgeStyles: Record<UserRole, string> = {
     [UserRole.ADMIN]: 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100',
     [UserRole.TEAM]: 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100',
-    [UserRole.CLIENT]: 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100',
+    [UserRole.USER]: 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100',
 };
 
 /**

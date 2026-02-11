@@ -270,24 +270,13 @@ export default function DashboardLayout({
     return (
         <div className="min-h-screen bg-zinc-950 flex flex-col md:flex-row font-sans selection:bg-primary/20 overflow-hidden relative">
             {/* Mobile Header - Fixed at top */}
-            <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-zinc-950 border-b border-white/5 px-4 py-3 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    {appLogo ? (
-                        <img
-                            src={appLogo}
-                            alt={appName}
-                            className="h-8 w-8 rounded-lg object-cover shadow-lg shadow-white/5"
-                        />
-                    ) : (
-                        <div className="h-8 w-8 bg-white rounded-lg flex items-center justify-center shadow-lg shadow-white/5">
-                            <Sparkles className="h-4 w-4 text-black" fill="currentColor" />
-                        </div>
-                    )}
-                    <span className="font-bold text-lg tracking-tight">{appName}</span>
+            <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-zinc-950 border-b border-white/5 px-4 py-3 flex items-center justify-between flex-nowrap gap-4">
+                <div className="flex-1 min-w-0 overflow-hidden">
+                    <AppBranding variant="compact" className="text-white truncate" />
                 </div>
                 <button
                     onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                    className="p-2 rounded-lg hover:bg-white/5 transition-colors"
+                    className="p-2 rounded-lg hover:bg-white/5 transition-colors shrink-0"
                 >
                     <Menu className="h-5 w-5 text-white" />
                 </button>

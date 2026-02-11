@@ -1,10 +1,11 @@
 import api from './auth';
+import { UserRole } from './types/enums';
 
 export interface User {
     id: string;
     name: string;
     email: string;
-    role: 'admin' | 'client' | 'team';
+    role: UserRole;
     profileImage?: string;
     createdAt: string;
 }
