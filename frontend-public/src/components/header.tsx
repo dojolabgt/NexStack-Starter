@@ -23,7 +23,7 @@ export function Header() {
                     </Button>
 
                     <Button size="sm" className="rounded-full" asChild>
-                        <Link href="/login">
+                        <Link href={process.env.NEXT_PUBLIC_DASHBOARD_URL ? `${process.env.NEXT_PUBLIC_DASHBOARD_URL}/login` : "/login"}>
                             <LogIn className="mr-2 h-4 w-4" /> Entrar
                         </Link>
                     </Button>
