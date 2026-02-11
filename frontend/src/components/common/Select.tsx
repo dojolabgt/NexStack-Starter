@@ -34,7 +34,7 @@ const SelectTrigger = React.forwardRef<
         {children}
     </UiSelectTrigger>
 ));
-SelectTrigger.displayName = UiSelectTrigger.displayName;
+SelectTrigger.displayName = "SelectTrigger";
 
 const SelectContent = React.forwardRef<
     React.ElementRef<typeof UiSelectContent>,
@@ -52,7 +52,7 @@ const SelectContent = React.forwardRef<
         {children}
     </UiSelectContent>
 ));
-SelectContent.displayName = UiSelectContent.displayName;
+SelectContent.displayName = "SelectContent";
 
 const SelectItem = React.forwardRef<
     React.ElementRef<typeof UiSelectItem>,
@@ -66,7 +66,7 @@ const SelectItem = React.forwardRef<
         {children}
     </UiSelectItem>
 ));
-SelectItem.displayName = UiSelectItem.displayName;
+SelectItem.displayName = "SelectItem";
 
 export {
     Select,

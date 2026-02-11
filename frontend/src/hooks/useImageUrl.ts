@@ -16,7 +16,7 @@ import { getImageUrl } from '@/lib/image-utils';
 export function useImageUrl(
     imagePath: string | null | undefined,
     fallback?: string
-): string | null {
+): string | null | undefined {
     return useMemo(() => {
         if (!imagePath) {
             return fallback || null;
@@ -37,7 +37,7 @@ export function useImageUrl(
  */
 export function useImageUrls(
     imagePaths: (string | null | undefined)[]
-): (string | null)[] {
+): (string | null | undefined)[] {
     return useMemo(() => {
         return imagePaths.map(path => path ? getImageUrl(path) : null);
     }, [imagePaths]);
