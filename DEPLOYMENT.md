@@ -37,6 +37,9 @@ Dokploy will automatically detect `docker-compose.yml`. Make sure it's using the
 
 In Dokploy, add these environment variables:
 
+> [!CAUTION]
+> **CRITICAL**: You MUST set `NEXT_PUBLIC_API_URL` BEFORE deploying. This variable is embedded at build time and cannot be changed after deployment without rebuilding.
+
 #### Database
 ```
 POSTGRES_USER=admin
@@ -57,11 +60,14 @@ JWT_SECRET=<YOUR_GENERATED_SECRET_1>
 JWT_REFRESH_SECRET=<YOUR_GENERATED_SECRET_2>
 ```
 
-#### Frontend
+#### Frontend (CRITICAL - Set BEFORE first deploy)
 ```
 NEXT_PUBLIC_API_URL=https://api.yourdomain.com
 FRONTEND_URL=https://yourdomain.com
 ```
+
+> [!IMPORTANT]
+> Replace `yourdomain.com` with your actual domain. The `NEXT_PUBLIC_API_URL` must match the domain you configure in step 2.4.
 
 #### Storage
 ```
@@ -69,6 +75,11 @@ STORAGE_TYPE=local
 UPLOAD_MAX_SIZE=5242880
 ALLOWED_IMAGE_TYPES=jpg,jpeg,png,webp,gif
 ```
+
+### 2.4 Configure Domains
+
+> [!WARNING]
+> Configure domains BEFORE setting environment variables, so you know the correct URLs to use.
 
 ## Step 3: Configure Domains
 
