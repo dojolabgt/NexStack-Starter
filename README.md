@@ -2,7 +2,7 @@
 
 **Enterprise-grade fullstack starter for rapid SaaS development**
 
-Un boilerplate moderno y production-ready que combina Next.js 14 y NestJS con autenticación completa, RBAC, y arquitectura escalable. Diseñado para ser **la base sólida de tu próximo proyecto**, ya sea un dashboard corporativo, una aplicación SaaS, o una plataforma web moderna.
+Un boilerplate moderno y production-ready que combina Next.js 16.1.6 y NestJS con autenticación completa, RBAC, y arquitectura escalable. Diseñado para ser **la base sólida de tu próximo proyecto**, ya sea un dashboard corporativo, una aplicación SaaS, o una plataforma web moderna.
 
 > 💡 **Filosofía**: No es un framework opinionado ni un sistema multi-tenant complejo. Es una fundación limpia y profesional que te permite construir **exactamente lo que necesitas** sin restricciones.
 
