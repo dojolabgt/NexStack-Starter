@@ -14,8 +14,9 @@ async function bootstrap() {
 
   // Configure body parser with increased limit (for JSON payloads)
   // Note: File uploads use multipart/form-data and bypass this limit
-  app.use(bodyParser.json({ limit: '10mb' }));
-  app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
+  const bodyParserLimit = process.env.BODY_PARSER_LIMIT || '10mb';
+  app.use(bodyParser.json({ limit: bodyParserLimit }));
+  app.use(bodyParser.urlencoded({ limit: bodyParserLimit, extended: true }));
 
   // Enable cookie parser
   app.use(cookieParser());

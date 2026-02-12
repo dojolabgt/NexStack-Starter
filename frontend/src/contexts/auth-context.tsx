@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { useRouter } from 'next/navigation';
 import { checkAuth, logout as authLogout } from '@/lib/auth';
 import { User } from '@/lib/types/api.types';
+import { logger } from '@/lib/logger';
 
 interface AuthContextType {
     user: User | null;
@@ -34,7 +35,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             }
             setUser(null);
         } catch (error) {
-            console.error('Failed to refresh user:', error);
+            logger.error('Failed to refresh user:', error);
             setUser(null);
         }
     }, []);
@@ -58,7 +59,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         try {
             await authLogout();
         } catch (error) {
-            console.error('Logout error:', error);
+            logger.error('Logout error:', error);
         } finally {
             setUser(null);
             router.push('/login');

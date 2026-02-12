@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { getSettings, type AppSettings } from "@/lib/settings-service";
 import { getImageUrl } from "@/lib/image-utils";
 import { AppBranding } from "@/components/common/AppBranding";
+import { logger } from "@/lib/logger";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -30,13 +31,13 @@ export default function LoginPage() {
                 const data = await getSettings();
                 setSettings(data);
             } catch (error) {
-                console.error("Failed to load settings:", error);
+                logger.error("Failed to load settings:", error);
             }
         };
         loadSettings();
     }, []);
 
-    const appName = settings?.appName || "Pablo Lacán";
+    const appName = settings?.appName || process.env.NEXT_PUBLIC_APP_NAME || "Dashboard";
     const appLogo = settings?.appLogo ? getImageUrl(settings.appLogo) : null;
 
     return (
@@ -125,11 +126,11 @@ export default function LoginPage() {
                     <div className="bg-zinc-900/80 backdrop-blur-xl border border-zinc-800 p-6 rounded-2xl shadow-2xl transform transition-transform hover:-translate-y-1 duration-300">
                         <div className="flex items-center gap-4 mb-4">
                             <div className="h-10 w-10 rounded-full bg-white text-black flex items-center justify-center font-bold text-sm">
-                                PL
+                                {process.env.NEXT_PUBLIC_OWNER_INITIALS || "PL"}
                             </div>
                             <div>
-                                <p className="font-semibold text-sm">Pablo Lacán</p>
-                                <p className="text-xs text-zinc-400">Director de Proyecto</p>
+                                <p className="font-semibold text-sm">{process.env.NEXT_PUBLIC_OWNER_NAME || "Project Director"}</p>
+                                <p className="text-xs text-zinc-400">{process.env.NEXT_PUBLIC_OWNER_TITLE || "Director de Proyecto"}</p>
                             </div>
                         </div>
                         <p className="text-sm text-zinc-300 leading-relaxed">

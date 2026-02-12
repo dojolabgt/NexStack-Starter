@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  Index,
 } from 'typeorm';
 import { UserRole } from '../auth/constants/roles';
 
@@ -14,6 +15,7 @@ export class User {
   id: string;
 
   @Column({ unique: true })
+  @Index() // Index for faster email lookups
   email: string;
 
   @Column()
@@ -23,6 +25,7 @@ export class User {
   name: string;
 
   @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
+  @Index() // Index for role-based queries
   role: UserRole;
 
   @Column({ type: 'text', nullable: true })
@@ -32,11 +35,13 @@ export class User {
   profileImage: string;
 
   @CreateDateColumn()
+  @Index() // Index for sorting by creation date
   createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
 
   @DeleteDateColumn()
+  @Index() // Index for soft-delete queries
   deletedAt: Date;
 }

@@ -1,4 +1,4 @@
-import { Injectable, ForbiddenException } from '@nestjs/common';
+import { Injectable, ForbiddenException, Logger } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -13,6 +13,8 @@ import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
@@ -52,20 +54,27 @@ export class AuthService {
       },
     );
 
-    // For now, log to console
-    this.configService.get('NODE_ENV') !== 'production' &&
-      console.log(`Reset Token for ${email}: ${token}`);
+    const isDevelopment = this.configService.get('NODE_ENV') !== 'production';
+
+    // Log token only in development
+    if (isDevelopment) {
+      this.logger.log(`Reset Token for ${email}: ${token}`);
+    }
 
     try {
       await this.mailService.sendPasswordReset(user, token);
     } catch (error) {
-      console.error(`Error sending email to ${user.email}:`, error);
-      // We might not want to throw here to avoid leaking error details or blocking the flow
-      // But depending on requirements, we could throw. 
-      // For now, let's log and proceed as "success" to UI to avoid enumeration, but maybe log internally.
+      if (isDevelopment) {
+        this.logger.error(`Error sending email to ${user.email}:`, error);
+      }
+      // Don't throw to avoid user enumeration
     }
 
-    return { message: 'If user exists, email sent', token }; // Returning token for dev ease, remove in prod!!
+    // ✅ Only return token in development for testing
+    return {
+      message: 'If user exists, email sent',
+      ...(isDevelopment && { token }),
+    };
   }
 
   async resetPassword(token: string, newPassword: string) {
