@@ -247,7 +247,7 @@ export default function AppSettingsPage() {
                                                 </Button>
                                             </div>
                                             <p className="text-xs text-muted-foreground">
-                                                Recomendado: PHP/JPG. Max 5MB. Fondo transparente.
+                                                Recomendado: PNG/JPG. Max 5MB. Fondo transparente.
                                             </p>
                                         </div>
                                     </div>
