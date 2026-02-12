@@ -4,7 +4,6 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
 import { AuthenticatedUser } from './interfaces/authenticated-user.interface';
-import { UserRole } from './constants/roles';
 import { User } from '../users/user.entity';
 
 import { SettingsService } from '../settings/settings.service';
@@ -21,7 +20,7 @@ export class AuthService {
     private configService: ConfigService,
     private settingsService: SettingsService,
     private mailService: MailService,
-  ) { }
+  ) {}
 
   async register(registerDto: RegisterDto) {
     const settings = await this.settingsService.getSettings();
@@ -29,7 +28,9 @@ export class AuthService {
       throw new ForbiddenException('Registration is disabled by administrator');
     }
 
-    const existingUser = await this.usersService.findOneByEmail(registerDto.email);
+    const existingUser = await this.usersService.findOneByEmail(
+      registerDto.email,
+    );
     if (existingUser) {
       throw new ForbiddenException('User already exists');
     }
@@ -79,7 +80,11 @@ export class AuthService {
 
   async resetPassword(token: string, newPassword: string) {
     try {
-      const payload = await this.jwtService.verifyAsync(token, {
+      const payload = await this.jwtService.verifyAsync<{
+        sub: string;
+        email: string;
+        type: string;
+      }>(token, {
         secret: this.configService.get<string>('JWT_SECRET'),
       });
 
@@ -95,8 +100,7 @@ export class AuthService {
       await this.usersService.setPassword(user.id, newPassword);
 
       return { message: 'Password updated successfully' };
-
-    } catch (error) {
+    } catch {
       throw new ForbiddenException('Invalid or expired token');
     }
   }

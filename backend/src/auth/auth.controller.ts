@@ -28,7 +28,7 @@ import { Throttle, SkipThrottle } from '@nestjs/throttler';
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
 
-  constructor(private authService: AuthService) { }
+  constructor(private authService: AuthService) {}
 
   @UseGuards(LocalAuthGuard)
   @Throttle({ default: { limit: 5, ttl: 60000 } })
@@ -57,9 +57,8 @@ export class AuthController {
     @Body() registerDto: RegisterDto,
     @Res({ passthrough: true }) res: ExpressResponse,
   ) {
-    const { accessToken, refreshToken } = await this.authService.register(
-      registerDto,
-    );
+    const { accessToken, refreshToken } =
+      await this.authService.register(registerDto);
 
     this.setAuthCookies(res, accessToken, refreshToken);
 

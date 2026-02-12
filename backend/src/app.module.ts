@@ -34,7 +34,9 @@ import { MailModule } from './mail/mail.module';
         SEED_ADMIN_PASSWORD: Joi.string().optional(),
         SEED_CLIENT_PASSWORD: Joi.string().optional(),
         SEED_TEAM_PASSWORD: Joi.string().optional(),
-        STORAGE_TYPE: Joi.string().valid('local', 's3', 'cloudinary').default('local'),
+        STORAGE_TYPE: Joi.string()
+          .valid('local', 's3', 'cloudinary')
+          .default('local'),
         UPLOAD_MAX_SIZE: Joi.number().default(5242880),
         ALLOWED_IMAGE_TYPES: Joi.string().default('jpg,jpeg,png,webp,gif'),
         MAIL_HOST: Joi.string().required(),
@@ -81,4 +83,4 @@ import { MailModule } from './mail/mail.module';
     },
   ],
 })
-export class AppModule { }
+export class AppModule {}

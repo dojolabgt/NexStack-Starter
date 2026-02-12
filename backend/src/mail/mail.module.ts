@@ -9,7 +9,7 @@ import { join } from 'path';
 @Module({
   imports: [
     MailerModule.forRootAsync({
-      useFactory: async (config: ConfigService) => ({
+      useFactory: (config: ConfigService) => ({
         transport: {
           host: config.get('MAIL_HOST'),
           port: config.get<number>('MAIL_PORT'),
@@ -19,7 +19,7 @@ import { join } from 'path';
             pass: config.get('MAIL_PASSWORD'),
           },
           tls: {
-            rejectUnauthorized: false,  // ✅ Agregar esto para Gmail
+            rejectUnauthorized: false, // ✅ Agregar esto para Gmail
           },
           debug: true, // Show debug output
           logger: true, // Log information to console
@@ -41,4 +41,4 @@ import { join } from 'path';
   providers: [MailService],
   exports: [MailService],
 })
-export class MailModule { }
+export class MailModule {}

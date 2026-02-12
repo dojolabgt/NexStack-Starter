@@ -10,23 +10,23 @@ import { storageConfig } from '../storage.config';
  * @param callback - Multer callback function
  */
 export const imageFileFilter = (
-    req: any,
-    file: Express.Multer.File,
-    callback: (error: Error | null, acceptFile: boolean) => void,
+  req: any,
+  file: Express.Multer.File,
+  callback: (error: Error | null, acceptFile: boolean) => void,
 ) => {
-    // Check if mimetype matches allowed types
-    const mimeTypeRegex = new RegExp(
-        `\\/(${storageConfig.allowedImageTypes.join('|')})$`,
+  // Check if mimetype matches allowed types
+  const mimeTypeRegex = new RegExp(
+    `\\/(${storageConfig.allowedImageTypes.join('|')})$`,
+  );
+
+  if (!file.mimetype.match(mimeTypeRegex)) {
+    return callback(
+      new BadRequestException(
+        `Solo se permiten imágenes de tipo: ${storageConfig.allowedImageTypes.join(', ')}`,
+      ),
+      false,
     );
+  }
 
-    if (!file.mimetype.match(mimeTypeRegex)) {
-        return callback(
-            new BadRequestException(
-                `Solo se permiten imágenes de tipo: ${storageConfig.allowedImageTypes.join(', ')}`,
-            ),
-            false,
-        );
-    }
-
-    callback(null, true);
+  callback(null, true);
 };

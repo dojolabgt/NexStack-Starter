@@ -9,28 +9,31 @@ import { UploadResult } from './interfaces/storage.interface';
  */
 @Injectable()
 export class StorageService {
-    constructor(
-        @Inject('STORAGE_PROVIDER') private readonly provider: IStorageProvider,
-    ) { }
+  constructor(
+    @Inject('STORAGE_PROVIDER') private readonly provider: IStorageProvider,
+  ) {}
 
-    /**
-     * Upload a file using the active storage provider
-     */
-    async upload(file: Express.Multer.File, folder: string): Promise<UploadResult> {
-        return this.provider.upload(file, folder);
-    }
+  /**
+   * Upload a file using the active storage provider
+   */
+  async upload(
+    file: Express.Multer.File,
+    folder: string,
+  ): Promise<UploadResult> {
+    return this.provider.upload(file, folder);
+  }
 
-    /**
-     * Delete a file using the active storage provider
-     */
-    async delete(fileUrl: string): Promise<void> {
-        return this.provider.delete(fileUrl);
-    }
+  /**
+   * Delete a file using the active storage provider
+   */
+  async delete(fileUrl: string): Promise<void> {
+    return this.provider.delete(fileUrl);
+  }
 
-    /**
-     * Get public URL for a file
-     */
-    getUrl(filename: string): string {
-        return this.provider.getUrl(filename);
-    }
+  /**
+   * Get public URL for a file
+   */
+  getUrl(filename: string): string {
+    return this.provider.getUrl(filename);
+  }
 }

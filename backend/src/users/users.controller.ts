@@ -30,7 +30,7 @@ import { storageConfig } from '../storage/storage.config';
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) { }
+  constructor(private readonly usersService: UsersService) {}
 
   @Get()
   @Roles(UserRole.ADMIN)
@@ -65,7 +65,10 @@ export class UsersController {
         changePasswordDto.password,
       );
     } catch (error) {
-      if (error.message === 'Invalid current password') {
+      if (
+        error instanceof Error &&
+        error.message === 'Invalid current password'
+      ) {
         throw new BadRequestException('Invalid current password');
       }
       throw error;

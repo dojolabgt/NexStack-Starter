@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
@@ -18,7 +23,7 @@ export class UsersService {
     private usersRepository: Repository<User>,
     private readonly storageService: StorageService,
     private readonly configService: ConfigService,
-  ) { }
+  ) {}
 
   async findOneByEmail(email: string): Promise<User | null> {
     return this.usersRepository.findOne({
@@ -110,7 +115,10 @@ export class UsersService {
       throw new NotFoundException('User not found or has no password set');
     }
 
-    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    const isPasswordValid = await bcrypt.compare(
+      currentPassword,
+      user.password,
+    );
     if (!isPasswordValid) {
       throw new BadRequestException('Invalid current password');
     }
@@ -132,7 +140,10 @@ export class UsersService {
   }
 
   // Helper for generic updates if strictly needed (e.g. from AuthService for refreshToken)
-  async update(id: string, updateData: { refreshToken?: string | null }): Promise<User> {
+  async update(
+    id: string,
+    updateData: { refreshToken?: string | null },
+  ): Promise<User> {
     await this.usersRepository.update(id, updateData);
     const user = await this.findOneById(id);
     if (!user) {
@@ -152,8 +163,10 @@ export class UsersService {
       try {
         await this.storageService.delete(user.profileImage);
       } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'Unknown error';
         this.logger.warn(
-          `Failed to delete profile image during user removal: ${error.message}`,
+          `Failed to delete profile image during user removal: ${errorMessage}`,
         );
       }
     }
@@ -176,7 +189,11 @@ export class UsersService {
         try {
           await this.storageService.delete(user.profileImage);
         } catch (error) {
-          this.logger.warn(`Failed to delete old profile image: ${error.message}`);
+          const errorMessage =
+            error instanceof Error ? error.message : 'Unknown error';
+          this.logger.warn(
+            `Failed to delete old profile image: ${errorMessage}`,
+          );
         }
       }
 

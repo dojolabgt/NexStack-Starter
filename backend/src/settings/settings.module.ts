@@ -6,9 +6,9 @@ import { AppSettings } from './settings.entity';
 import { StorageModule } from '../storage/storage.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([AppSettings]), StorageModule],
-    controllers: [SettingsController],
-    providers: [SettingsService],
-    exports: [SettingsService],
+  imports: [TypeOrmModule.forFeature([AppSettings]), StorageModule],
+  controllers: [SettingsController],
+  providers: [SettingsService],
+  exports: [SettingsService],
 })
-export class SettingsModule { }
+export class SettingsModule {}

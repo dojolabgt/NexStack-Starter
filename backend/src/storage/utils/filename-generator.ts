@@ -10,8 +10,8 @@ import { v4 as uuidv4 } from 'uuid';
  * @returns Unique filename with original extension
  */
 export const generateFilename = (originalname: string): string => {
-    const ext = extname(originalname);
-    const timestamp = Date.now();
-    const uniqueId = uuidv4();
-    return `${timestamp}-${uniqueId}${ext}`;
+  const ext = extname(originalname);
+  const timestamp = Date.now();
+  const uniqueId = uuidv4();
+  return `${timestamp}-${uniqueId}${ext}`;
 };

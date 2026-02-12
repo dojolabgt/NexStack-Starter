@@ -12,8 +12,9 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
   const adminPassword = configService.getOrThrow<string>('SEED_ADMIN_PASSWORD');
-  const clientPassword =
-    configService.getOrThrow<string>('SEED_CLIENT_PASSWORD');
+  const clientPassword = configService.getOrThrow<string>(
+    'SEED_CLIENT_PASSWORD',
+  );
   const teamPassword = configService.getOrThrow<string>('SEED_TEAM_PASSWORD');
 
   const users = [
@@ -56,14 +57,25 @@ async function bootstrap() {
     }
   }
 
-  // Enforce default branding settings
-  console.log('🎨 Updating default branding settings...');
-  await settingsService.updateSettings({
-    appName: 'NexStack-App',
-    appLogo: '/public/branding/NexLogo.png',
-    appFavicon: '/public/branding/favicon.ico',
-  });
-  console.log('✅ Default branding settings updated.');
+  // Initialize app settings if they don't exist
+  try {
+    await settingsService.getSettings();
+    console.log('⏭️  App settings already exist.');
+  } catch {
+    // Settings don't exist, create them with defaults
+    const settingsRepository = settingsService['settingsRepository'];
+    await settingsRepository.save({
+      id: 1,
+      appName: 'NexStack',
+      appLogo: '/public/branding/NexLogo.png',
+      appFavicon: '/public/branding/favicon.ico',
+      primaryColor: '#ebebebff',
+      secondaryColor: '#252525ff',
+      allowRegistration: true,
+      maintenanceMode: false,
+    });
+    console.log('✅ App settings created successfully.');
+  }
 
   await app.close();
   console.log('🌱 Database seeding completed!');

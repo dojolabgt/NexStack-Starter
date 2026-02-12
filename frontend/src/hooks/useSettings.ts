@@ -9,13 +9,27 @@ export function useSettings() {
     useEffect(() => {
         const loadSettings = async () => {
             try {
-                setIsLoading(true);
+                // First check cache
+                const cached = localStorage.getItem('app-settings-cache');
+                if (cached) {
+                    setSettings(JSON.parse(cached));
+                    setIsLoading(false); // Show cached content immediately
+                }
+
                 const data = await getSettings();
-                setSettings(data);
+
+                // Update cache if data changed
+                if (JSON.stringify(data) !== cached) {
+                    setSettings(data);
+                    localStorage.setItem('app-settings-cache', JSON.stringify(data));
+                }
+
                 setError(null);
             } catch (err) {
                 console.error('Failed to load settings:', err);
-                setError(err instanceof Error ? err : new Error('Failed to load settings'));
+                if (!localStorage.getItem('app-settings-cache')) {
+                    setError(err instanceof Error ? err : new Error('Failed to load settings'));
+                }
             } finally {
                 setIsLoading(false);
             }

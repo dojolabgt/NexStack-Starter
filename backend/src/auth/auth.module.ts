@@ -28,4 +28,4 @@ import { SettingsModule } from '../settings/settings.module';
   providers: [AuthService, LocalStrategy, JwtStrategy, RefreshTokenStrategy],
   exports: [AuthService],
 })
-export class AuthModule { }
+export class AuthModule {}
