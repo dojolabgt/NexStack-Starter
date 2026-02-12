@@ -1,17 +1,24 @@
-# NexStack Starter 🚀
+<div align="center">
+  <img src="./assets/logo.png" alt="NexStack Logo" width="200" height="auto" />
+  <h1>NexStack Starter 🚀</h1>
+  <p>
+    <b>Enterprise-grade fullstack starter for rapid SaaS development</b>
+  </p>
+  <p>
+    Un boilerplate moderno y production-ready que combina Next.js 16.1.6 y NestJS con autenticación completa, RBAC, y arquitectura escalable. Diseñado para ser <b>la base sólida de tu próximo proyecto</b>.
+  </p>
+  
+  <p>
+    <a href="https://github.com/dojolabgt/NexStack-Starter.git">
+      <img src="https://img.shields.io/badge/GITHUB-REPO-181717?style=for-the-badge&logo=github&logoColor=white" alt="Repo">
+    </a>
+  </p>
 
-**Enterprise-grade fullstack starter for rapid SaaS development**
-
-Un boilerplate moderno y production-ready que combina Next.js 16.1.6 y NestJS con autenticación completa, RBAC, y arquitectura escalable. Diseñado para ser **la base sólida de tu próximo proyecto**, ya sea un dashboard corporativo, una aplicación SaaS, o una plataforma web moderna.
-
-> 💡 **Filosofía**: No es un framework opinionado ni un sistema multi-tenant complejo. Es una fundación limpia y profesional que te permite construir **exactamente lo que necesitas** sin restricciones.
-
-🔗 **Repositorio**: [https://github.com/dojolabgt/NexStack-Starter.git](https://github.com/dojolabgt/NexStack-Starter.git)
+</div>
 
 ---
 
 ## 🛠 Tech Stack
-
 
 <div align="center">
   
@@ -51,7 +58,7 @@ Copia el archivo de ejemplo para crear tu configuración local:
 cp .env.example .env
 ```
 
-**Nota**: El archivo `.env.example` ya viene con una configuración funcional para desarrollo local con Docker. Solo asegúrate de cambiar las contraseñas y secretos si vas a desplegar en un entorno compartido.
+**Nota**: El archivo `.env.example` ya viene con una configuración funcional para desarrollo local con Docker.
 
 ### 3. Iniciar con Docker Compose
 
@@ -59,21 +66,29 @@ Levanta todos los servicios (Frontend, Backend, Base de Datos) con un solo coman
 
 ```bash
 # Iniciar en modo desarrollo (con hot-reload)
-docker-compose -f docker-compose.dev.yml up --build
+docker compose -f docker-compose.dev.yml up --build
 ```
 
 **Servicios disponibles:**
 - 🎨 **Dashboard**: [http://localhost:3000](http://localhost:3000)
 - 🌐 **Sitio Público**: [http://localhost:3001](http://localhost:3001)
-- ⚙️ **Backend API**: [http://localhost:4000](http://localhost:4000) (Swagger en `/api/docs` si está habilitado)
+- ⚙️ **Backend API**: [http://localhost:4000](http://localhost:4000) (Swagger en `/api/docs`)
 - 🗄️ **Base de Datos**: `localhost:5432`
 
-### 4. Cargar Datos Iniciales (Seeds)
+### 4. Inicializar Base de Datos (Core)
 
-Una vez que los contenedores estén corriendo, abre una **nueva terminal** y ejecuta el seed para crear los usuarios por defecto:
+Es **fundamental** correr las migraciones antes de usar la app, para crear las tablas necesarias:
 
 ```bash
-docker-compose -f docker-compose.dev.yml exec backend npm run seed
+docker compose -f docker-compose.dev.yml exec backend npm run migration:run
+```
+
+### 5. Cargar Datos Iniciales (Seeds)
+
+Una vez aplicadas las migraciones, ejecuta el seed para crear los usuarios por defecto:
+
+```bash
+docker compose -f docker-compose.dev.yml exec backend npm run seed
 ```
 
 ---
@@ -90,21 +105,22 @@ Estos son los usuarios creados por el script de seed. ¡Cámbialos en producció
 
 ---
 
-## � Comandos Útiles
+## 🛠 Comandos Útiles
+
+#### Generar una nueva migración
+Si haces cambios en las entidades (`.entity.ts`), genera una migración automática:
+```bash
+docker compose -f docker-compose.dev.yml exec backend npm run migration:generate src/migrations/NombreDelCambio
+```
 
 #### Ver logs del backend
 ```bash
-docker-compose -f docker-compose.dev.yml logs -f backend
+docker compose -f docker-compose.dev.yml logs -f backend
 ```
 
-#### Detener los servicios
+#### Detener los servicios y limpiar volúmenes
 ```bash
-docker-compose -f docker-compose.dev.yml down
-```
-
-#### Limpiar todo (incluyendo volúmenes de base de datos)
-```bash
-docker-compose -f docker-compose.dev.yml down -v
+docker compose -f docker-compose.dev.yml down -v
 ```
 
 ---
@@ -115,4 +131,4 @@ Este proyecto está bajo la licencia MIT. Siéntete libre de usarlo como base pa
 
 ---
 
-<center>Made with ❤️ by Eklista </center>
+<center>Made with ❤️ by Eklista</center>

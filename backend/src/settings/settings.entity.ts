@@ -11,7 +11,7 @@ export class AppSettings {
     @PrimaryColumn({ default: 1 })
     id: number; // Singleton pattern - always ID=1
 
-    @Column({ default: 'Dashboard App' })
+    @Column({ default: 'NexStack-App' })
     appName: string;
 
     @Column({ nullable: true })
@@ -20,10 +20,10 @@ export class AppSettings {
     @Column({ nullable: true })
     appFavicon: string; // URL to favicon
 
-    @Column({ default: '#3B82F6' })
+    @Column({ default: '#ebebebff' })
     primaryColor: string; // Hex color
 
-    @Column({ default: '#10B981' })
+    @Column({ default: '#252525ff' })
     secondaryColor: string; // Hex color
 
     @Column({ default: true })

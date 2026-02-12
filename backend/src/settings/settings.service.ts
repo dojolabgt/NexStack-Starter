@@ -26,7 +26,9 @@ export class SettingsService {
             this.logger.log('Creating default app settings');
             settings = this.settingsRepository.create({
                 id: 1,
-                appName: 'Dashboard App',
+                appName: 'NexStack-App',
+                appLogo: '/public/branding/NexLogo.png',
+                appFavicon: '/public/branding/favicon.ico',
                 primaryColor: '#3B82F6',
                 secondaryColor: '#10B981',
                 allowRegistration: true,

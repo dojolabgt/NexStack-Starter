@@ -59,6 +59,13 @@ async function bootstrap() {
   });
   logger.log(`Serving static files from: ${uploadsPath}`);
 
+  // Serve static files from public directory (for branding)
+  const publicPath = join(process.cwd(), 'public');
+  app.useStaticAssets(publicPath, {
+    prefix: '/public/',
+  });
+  logger.log(`Serving static files from: ${publicPath}`);
+
   const port = process.env.PORT ?? 4000;
   await app.listen(port);
   logger.log(`Application is running on: http://localhost:${port}`);

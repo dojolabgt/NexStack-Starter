@@ -2,11 +2,13 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { UsersService } from './users/users.service';
+import { SettingsService } from './settings/settings.service';
 import { UserRole } from './auth/constants/roles';
 
 async function bootstrap() {
   const app = await NestFactory.createApplicationContext(AppModule);
   const usersService = app.get(UsersService);
+  const settingsService = app.get(SettingsService);
 
   const configService = app.get(ConfigService);
   const adminPassword = configService.getOrThrow<string>('SEED_ADMIN_PASSWORD');
@@ -53,6 +55,15 @@ async function bootstrap() {
       console.log(`✅ User ${userData.email} created successfully.`);
     }
   }
+
+  // Enforce default branding settings
+  console.log('🎨 Updating default branding settings...');
+  await settingsService.updateSettings({
+    appName: 'NexStack-App',
+    appLogo: '/public/branding/NexLogo.png',
+    appFavicon: '/public/branding/favicon.ico',
+  });
+  console.log('✅ Default branding settings updated.');
 
   await app.close();
   console.log('🌱 Database seeding completed!');
