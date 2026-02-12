@@ -1,4 +1,3 @@
-Readme mejorado · MD
 # NexStack Starter 🚀
 
 **Enterprise-grade fullstack starter for rapid SaaS development**
