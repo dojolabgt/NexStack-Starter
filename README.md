@@ -1,10 +1,11 @@
-# NexStack-Starter 🚀
+Readme mejorado · MD
+# NexStack Starter 🚀
 
-**Transform Ideas Into Seamless Digital Experiences**
+**Enterprise-grade fullstack starter for rapid SaaS development**
 
-Un kit de inicio full-stack moderno, robusto y escalable, diseñado para acelerar tu desarrollo. No es un sistema multi-tenant complejo, sino una base sólida para construir tu próxima gran idea.
+Un boilerplate moderno y production-ready que combina Next.js 14 y NestJS con autenticación completa, RBAC, y arquitectura escalable. Diseñado para ser **la base sólida de tu próximo proyecto**, ya sea un dashboard corporativo, una aplicación SaaS, o una plataforma web moderna.
 
-Creado por **Pablo Lacán**.
+> 💡 **Filosofía**: No es un framework opinionado ni un sistema multi-tenant complejo. Es una fundación limpia y profesional que te permite construir **exactamente lo que necesitas** sin restricciones.
 
 🔗 **Repositorio**: [https://github.com/dojolabgt/NexStack-Starter.git](https://github.com/dojolabgt/NexStack-Starter.git)
 
@@ -115,4 +116,4 @@ Este proyecto está bajo la licencia MIT. Siéntete libre de usarlo como base pa
 
 ---
 
-<center>Made with ❤️ by <b>Pablo Lacán</b> @ DojoLab GT</center>
+<center>Made with ❤️ by Eklista </center>
