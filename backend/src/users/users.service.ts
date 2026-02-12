@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
@@ -7,13 +7,17 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { StorageService } from '../storage/storage.service';
 import { storageConfig } from '../storage/storage.config';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
+
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
     private readonly storageService: StorageService,
+    private readonly configService: ConfigService,
   ) { }
 
   async findOneByEmail(email: string): Promise<User | null> {
@@ -99,18 +103,23 @@ export class UsersService {
   ): Promise<void> {
     const foundUser = await this.findOneById(id);
     if (!foundUser) {
-      throw new Error('User not found');
+      throw new NotFoundException('User not found');
     }
     const user = await this.findOneByEmailWithPassword(foundUser.email);
     if (!user || !user.password) {
-      throw new Error('User not found or has no password set');
+      throw new NotFoundException('User not found or has no password set');
     }
 
     const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
     if (!isPasswordValid) {
-      throw new Error('Invalid current password'); // Controller should catch and throw Unauthorized/BadRequest
+      throw new BadRequestException('Invalid current password');
     }
 
+    const hashedPassword = await this.hashPassword(newPassword);
+    await this.usersRepository.update(id, { password: hashedPassword });
+  }
+
+  async setPassword(id: string, newPassword: string): Promise<void> {
     const hashedPassword = await this.hashPassword(newPassword);
     await this.usersRepository.update(id, { password: hashedPassword });
   }
@@ -127,9 +136,13 @@ export class UsersService {
     await this.usersRepository.update(id, updateData);
     const user = await this.findOneById(id);
     if (!user) {
-      throw new Error('User not found');
+      throw new NotFoundException('User not found');
     }
     return user;
+  }
+
+  async softDelete(id: string): Promise<void> {
+    await this.usersRepository.softDelete(id);
   }
 
   async remove(id: string): Promise<void> {
@@ -139,10 +152,8 @@ export class UsersService {
       try {
         await this.storageService.delete(user.profileImage);
       } catch (error) {
-        // Log but don't fail if image deletion fails
-        console.warn(
-          'Failed to delete profile image during user removal:',
-          error.message,
+        this.logger.warn(
+          `Failed to delete profile image during user removal: ${error.message}`,
         );
       }
     }
@@ -153,37 +164,39 @@ export class UsersService {
     userId: string,
     file: Express.Multer.File,
   ): Promise<User> {
-    // Get current user to delete old image
-    const user = await this.findOneById(userId);
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    // Delete old profile image if exists
-    if (user.profileImage) {
-      try {
-        await this.storageService.delete(user.profileImage);
-      } catch (error) {
-        // Ignore errors when deleting old image (e.g., if it was a base64 URL or file doesn't exist)
-        console.warn('Failed to delete old profile image:', error.message);
+    return this.usersRepository.manager.transaction(async (manager) => {
+      // Get current user to delete old image
+      const user = await manager.findOne(User, { where: { id: userId } });
+      if (!user) {
+        throw new NotFoundException('User not found');
       }
-    }
 
-    // Upload new image
-    const uploadResult = await this.storageService.upload(
-      file,
-      storageConfig.folders.profileImages,
-    );
+      // Delete old profile image if exists
+      if (user.profileImage) {
+        try {
+          await this.storageService.delete(user.profileImage);
+        } catch (error) {
+          this.logger.warn(`Failed to delete old profile image: ${error.message}`);
+        }
+      }
 
-    // Update user with new image URL
-    await this.usersRepository.update(userId, {
-      profileImage: uploadResult.url,
+      // Upload new image
+      const uploadResult = await this.storageService.upload(
+        file,
+        storageConfig.folders.profileImages,
+      );
+
+      // Update user with new image URL
+      await manager.update(User, userId, {
+        profileImage: uploadResult.url,
+      });
+
+      return manager.findOne(User, { where: { id: userId } }) as Promise<User>;
     });
-
-    return this.findOneById(userId) as Promise<User>;
   }
 
   private async hashPassword(password: string): Promise<string> {
-    return bcrypt.hash(password, 10);
+    const saltRounds = this.configService.get<number>('BCRYPT_SALT_ROUNDS', 10);
+    return bcrypt.hash(password, Number(saltRounds));
   }
 }

@@ -45,6 +45,53 @@ After seeding the database:
 - **Backend API**: http://localhost:4000
 - **PostgreSQL**: localhost:5432
 
+## Database Migrations
+
+This project uses TypeORM migrations. To manage schema changes:
+
+```bash
+# Generate a check for schema changes
+# Replace 'MigrationName' with a descriptive name
+docker-compose -f docker-compose.dev.yml exec backend npm run migration:generate src/migrations/MigrationName
+
+# Apply pending migrations
+docker-compose -f docker-compose.dev.yml exec backend npm run migration:run
+
+# Revert last migration
+docker-compose -f docker-compose.dev.yml exec backend npm run migration:revert
+```
+
+## Configuration
+
+### Email (Brevo / SMTP)
+Configure the following in your `.env` file to enable email notifications:
+
+```ini
+MAIL_HOST=smtp-relay.brevo.com
+MAIL_PORT=587
+MAIL_USER=your_user
+MAIL_PASSWORD=your_password
+MAIL_FROM="No Reply <noreply@example.com>"
+```
+
+## Testing
+
+### Backend Tests
+```bash
+# Run unit tests
+docker-compose -f docker-compose.dev.yml exec backend npm run test
+
+# Run E2E tests
+docker-compose -f docker-compose.dev.yml exec backend npm run test:e2e
+```
+
+### Frontend Tests
+```bash
+# Run tests with Vitest (Host)
+cd frontend
+npm run test
+```
+
 ## Tech Stack
 
 - **Frontend**: Next.js 15, React, TailwindCSS, shadcn/ui

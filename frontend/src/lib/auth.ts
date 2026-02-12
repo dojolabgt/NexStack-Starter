@@ -27,6 +27,21 @@ export const login = async (email: string, pass: string): Promise<LoginResponse>
     return response.data;
 };
 
+export const register = async (userData: { email: string; password: string; name: string }) => {
+    const response = await api.post('/auth/register', userData);
+    return response.data;
+};
+
+export const forgotPassword = async (email: string) => {
+    const response = await api.post('/auth/forgot-password', { email });
+    return response.data;
+};
+
+export const resetPassword = async (token: string, newPassword: string) => {
+    const response = await api.post('/auth/reset-password', { token, newPassword });
+    return response.data;
+};
+
 export const logout = async () => {
     await api.post('/auth/logout');
 };
@@ -60,7 +75,11 @@ api.interceptors.response.use(
                 return api(originalRequest);
             } catch (refreshError) {
                 // Refresh failed, redirect to login or clear state
-                if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+                // Don't redirect if we are on a public page
+                const publicPaths = ['/login', '/register', '/forgot-password', '/reset-password'];
+                const isPublicPath = typeof window !== 'undefined' && publicPaths.some(path => window.location.pathname.startsWith(path));
+
+                if (typeof window !== 'undefined' && !isPublicPath) {
                     // Clear any stored state and redirect if needed
                     window.location.href = '/login';
                 }

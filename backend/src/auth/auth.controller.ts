@@ -8,6 +8,7 @@ import {
   UnauthorizedException,
   Logger,
   HttpCode,
+  Body,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
@@ -16,6 +17,10 @@ import { RefreshTokenGuard } from './guards/refresh-token.guard';
 import type { Response as ExpressResponse } from 'express';
 import type { RequestWithUser } from './interfaces/request-with-user.interface';
 import { AUTH_COOKIE, REFRESH_COOKIE } from './auth.constants';
+import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 import { Throttle, SkipThrottle } from '@nestjs/throttler';
 
@@ -30,6 +35,7 @@ export class AuthController {
   @Post('login')
   @HttpCode(200)
   async login(
+    @Body() loginDto: LoginDto,
     @Req() req: RequestWithUser,
     @Res({ passthrough: true }) res: ExpressResponse,
   ) {
@@ -43,6 +49,37 @@ export class AuthController {
     this.setAuthCookies(res, accessToken, refreshToken);
 
     return { message: 'Login successful', user: req.user };
+  }
+
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @Post('register')
+  async register(
+    @Body() registerDto: RegisterDto,
+    @Res({ passthrough: true }) res: ExpressResponse,
+  ) {
+    const { accessToken, refreshToken } = await this.authService.register(
+      registerDto,
+    );
+
+    this.setAuthCookies(res, accessToken, refreshToken);
+
+    // Get user again to return full object if needed, or just tokens/success
+    return { message: 'Registration successful' };
+  }
+
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
+  @Post('forgot-password')
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(forgotPasswordDto.email);
+  }
+
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
+  @Post('reset-password')
+  async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
+    return this.authService.resetPassword(
+      resetPasswordDto.token,
+      resetPasswordDto.newPassword,
+    );
   }
 
   @UseGuards(JwtAuthGuard)

@@ -89,6 +89,18 @@ export default function LoginPage() {
                             Soporte IT
                         </Link>
                     </div>
+
+                    {settings?.allowRegistration && (
+                        <div className="text-center text-sm text-muted-foreground mt-4">
+                            ¿No tienes una cuenta?{" "}
+                            <Link
+                                href="/register"
+                                className="font-medium text-primary hover:underline underline-offset-4"
+                            >
+                                Regístrate aquí
+                            </Link>
+                        </div>
+                    )}
                 </div>
             </div>
 

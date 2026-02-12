@@ -1,17 +1,21 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Camera, Save, AlertCircle, CheckCircle2 } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Camera, Save, Loader2, Lock, User as UserIcon } from "lucide-react";
 import { ImageCropperDialog } from "@/components/image-cropper-dialog";
 import api from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { getImageUrl } from "@/lib/image-utils";
+import { toast } from "sonner";
+import { Separator } from "@/components/ui/separator";
 
 interface User {
     id: string;
@@ -21,27 +25,53 @@ interface User {
     profileImage?: string;
 }
 
+// Schema for Profile Info
+const profileSchema = z.object({
+    name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
+    email: z.string().email("Email inválido"),
+});
+
+// Schema for Password Change
+const passwordSchema = z.object({
+    currentPassword: z.string().min(1, "La contraseña actual es requerida"),
+    newPassword: z.string().min(8, "La contraseña debe tener al menos 8 caracteres")
+        .regex(/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, "Debe contener mayúscula, minúscula y número/símbolo"),
+    confirmPassword: z.string().min(1, "Confirma tu nueva contraseña"),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Las contraseñas no coinciden",
+    path: ["confirmPassword"],
+});
+
+type ProfileFormValues = z.infer<typeof profileSchema>;
+type PasswordFormValues = z.infer<typeof passwordSchema>;
+
 export default function SettingsPage() {
     const router = useRouter();
     const [user, setUser] = useState<User | null>(null);
-    const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
-    const [profileImage, setProfileImage] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    // Image Upload State
     const [tempImageForCrop, setTempImageForCrop] = useState<string | null>(null);
     const [isCropperOpen, setIsCropperOpen] = useState(false);
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-    const [successMessage, setSuccessMessage] = useState("");
-    const [errorMessage, setErrorMessage] = useState("");
+
+    // Forms
+    const profileForm = useForm<ProfileFormValues>({
+        resolver: zodResolver(profileSchema),
+    });
+
+    const passwordForm = useForm<PasswordFormValues>({
+        resolver: zodResolver(passwordSchema),
+    });
 
     useEffect(() => {
         const fetchUser = async () => {
             try {
                 const response = await api.get<User>("/auth/me");
                 setUser(response.data);
-                setName(response.data.name);
-                setEmail(response.data.email);
-                setProfileImage(response.data.profileImage || null);
+                profileForm.reset({
+                    name: response.data.name,
+                    email: response.data.email,
+                });
             } catch (error) {
                 console.error("Failed to fetch user:", error);
                 router.push("/login");
@@ -51,143 +81,94 @@ export default function SettingsPage() {
         };
 
         fetchUser();
-    }, [router]);
+    }, [router, profileForm]);
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            // Validate file size (2MB max)
-            const maxSize = 2 * 1024 * 1024; // 2MB in bytes
-            if (file.size > maxSize) {
-                setErrorMessage("La imagen es demasiado grande. El tamaño máximo es 2MB.");
-                setTimeout(() => setErrorMessage(""), 5000);
-                e.target.value = ""; // Reset input
+            if (file.size > 2 * 1024 * 1024) {
+                toast.error("La imagen es demasiado grande. Máximo 2MB.");
+                e.target.value = "";
                 return;
             }
 
-            // Validate file type
-            const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-            if (!validTypes.includes(file.type)) {
-                setErrorMessage("Formato de imagen no válido. Usa JPG, PNG, GIF o WebP.");
-                setTimeout(() => setErrorMessage(""), 5000);
-                e.target.value = ""; // Reset input
-                return;
-            }
-
-            // Read file and open cropper
             const reader = new FileReader();
             reader.onloadend = () => {
                 setTempImageForCrop(reader.result as string);
                 setIsCropperOpen(true);
-            };
-            reader.onerror = () => {
-                setErrorMessage("Error al leer la imagen. Intenta de nuevo.");
-                setTimeout(() => setErrorMessage(""), 5000);
             };
             reader.readAsDataURL(file);
         }
     };
 
     const handleCropComplete = async (croppedImage: string) => {
-        // Convert base64 to File object
-        const base64ToFile = async (base64String: string, filename: string): Promise<File> => {
-            const response = await fetch(base64String);
-            const blob = await response.blob();
-            return new File([blob], filename, { type: blob.type });
-        };
-
         try {
-            // Convert base64 to File
-            const file = await base64ToFile(croppedImage, 'profile-image.jpg');
+            const response = await fetch(croppedImage);
+            const blob = await response.blob();
+            const file = new File([blob], 'profile-image.jpg', { type: blob.type });
 
-            // Create FormData
             const formData = new FormData();
             formData.append('file', file);
 
-            // Upload to new endpoint
-            const response = await api.post<User>('/users/profile-image', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
+            const res = await api.post<User>('/users/profile-image', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
             });
 
-            // Update local state with server response
-            setUser(response.data);
-            setProfileImage(response.data.profileImage || null);
-
-            setSuccessMessage('Foto de perfil actualizada correctamente');
-            setTimeout(() => setSuccessMessage(''), 5000);
+            setUser(res.data);
+            toast.success("Foto de perfil actualizada");
         } catch (error) {
-            console.error('Failed to update profile image:', error);
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const err = error as any;
-
-            let errorMsg = 'Error al actualizar la foto de perfil.';
-            if (err.response?.status === 413) {
-                errorMsg = 'La imagen es demasiado grande. Intenta con una más pequeña.';
-            } else if (err.response?.data?.message) {
-                errorMsg = err.response.data.message;
-            }
-
-            setErrorMessage(errorMsg);
-            setTimeout(() => setErrorMessage(''), 7000);
+            console.error(error);
+            toast.error("Error al actualizar la foto");
         }
     };
 
-    const handleSave = async () => {
-        setSaving(true);
-        setSuccessMessage("");
-        setErrorMessage("");
-
+    const onProfileSubmit = async (data: ProfileFormValues) => {
         try {
-            // Only send name for non-admins, name and email for admins
-            const updateData: Partial<User> = { name };
+            // Only send name for non-admins to avoid 403/400 if backend restricts email
+            const updateData: Partial<User> = { name: data.name };
             if (user?.role === "admin") {
-                updateData.email = email;
+                updateData.email = data.email;
             }
 
-            // Note: Profile image is now handled separately via /users/profile-image endpoint
             await api.patch("/users/profile", updateData);
 
-            // Refresh user data
-            const response = await api.get<User>("/auth/me");
-            setUser(response.data);
-            setName(response.data.name);
-            setEmail(response.data.email);
-            setProfileImage(response.data.profileImage || null);
-
-            setSuccessMessage("Perfil actualizado correctamente");
-            setTimeout(() => setSuccessMessage(""), 5000);
+            // Refresh local user data
+            const res = await api.get<User>("/auth/me");
+            setUser(res.data);
+            toast.success("Perfil actualizado correctamente");
         } catch (error) {
-            console.error("Failed to update profile:", error);
+            console.error(error);
+            toast.error("Error al actualizar el perfil");
+        }
+    };
+
+    const onPasswordSubmit = async (data: PasswordFormValues) => {
+        try {
+            await api.patch("/users/change-password", {
+                currentPassword: data.currentPassword,
+                password: data.newPassword,
+            });
+            toast.success("Contraseña actualizada correctamente");
+            passwordForm.reset();
+        } catch (error) {
+            console.error(error);
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const err = error as any;
-
-            // Handle specific error messages
-            let errorMsg = "Error al actualizar el perfil. Intenta de nuevo.";
-
-            if (err.response?.status === 400) {
-                errorMsg = err.response?.data?.message || "Datos inválidos. Verifica la información.";
-            } else if (err.response?.status === 401) {
-                errorMsg = "Sesión expirada. Por favor, inicia sesión de nuevo.";
-            } else if (err.response?.data?.message) {
-                errorMsg = err.response.data.message;
+            if (err.response?.data?.message === "Invalid current password") {
+                passwordForm.setError("currentPassword", {
+                    type: "manual",
+                    message: "La contraseña actual es incorrecta"
+                });
+            } else {
+                toast.error(err.response?.data?.message || "Error al cambiar la contraseña");
             }
-
-            setErrorMessage(errorMsg);
-            setTimeout(() => setErrorMessage(""), 7000);
-        } finally {
-            setSaving(false);
         }
     };
 
     if (loading || !user) {
         return (
-            <div className="space-y-6 max-w-4xl">
-                <div className="animate-pulse space-y-4">
-                    <div className="h-10 bg-muted/50 rounded-lg w-1/3"></div>
-                    <div className="h-64 bg-muted/50 rounded-lg"></div>
-                </div>
+            <div className="flex h-[50vh] items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
         );
     }
@@ -195,134 +176,207 @@ export default function SettingsPage() {
     const isAdmin = user.role === "admin";
 
     return (
-        <div className="space-y-8">
-            <div className="space-y-2">
-                <h1 className="text-4xl font-bold tracking-tight">Configuración</h1>
-                <p className="text-muted-foreground text-lg">
-                    Gestiona tu perfil y preferencias
+        <div className="flex flex-col gap-6 h-full">
+            <div className="space-y-1">
+                <h1 className="text-3xl font-bold tracking-tight text-gray-900">Configuración de Cuenta</h1>
+                <p className="text-muted-foreground">
+                    Gestiona tu información personal y seguridad.
                 </p>
             </div>
 
-            {/* Success/Error Messages */}
-            {successMessage && (
-                <Alert className="border-green-200 bg-green-50 text-green-800">
-                    <CheckCircle2 className="h-4 w-4" />
-                    <AlertDescription>{successMessage}</AlertDescription>
-                </Alert>
-            )}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            {errorMessage && (
-                <Alert className="border-red-200 bg-red-50 text-red-800">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{errorMessage}</AlertDescription>
-                </Alert>
-            )}
-
-            <Card className="border-border/40">
-                <CardHeader>
-                    <CardTitle>Información del Perfil</CardTitle>
-                    <CardDescription>
-                        Actualiza tu foto de perfil y datos personales
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    {/* Profile Image */}
-                    <div className="flex items-center gap-6">
-                        <Avatar className="h-24 w-24">
-                            <AvatarImage src={getImageUrl(profileImage)} />
-                            <AvatarFallback className="text-2xl bg-gradient-to-br from-primary to-primary/80">
-                                {user.name.charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                        </Avatar>
-                        <div className="space-y-2">
-                            <Label htmlFor="picture" className="cursor-pointer">
-                                <div className="flex items-center gap-2 px-4 py-2 rounded-lg border border-border/40 hover:border-primary/40 hover:bg-muted/30 transition-all">
-                                    <Camera className="h-4 w-4" />
-                                    <span className="text-sm font-medium">Cambiar foto</span>
+                {/* Left Column: Profile Card */}
+                <div className="lg:col-span-2 space-y-6">
+                    <Card className="border-border/60 shadow-sm">
+                        <CardHeader>
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-primary/10 rounded-lg">
+                                    <UserIcon className="h-5 w-5 text-primary" />
                                 </div>
-                                <Input
-                                    id="picture"
-                                    type="file"
-                                    accept="image/*"
-                                    className="hidden"
-                                    onChange={handleImageChange}
-                                />
-                            </Label>
-                            <p className="text-xs text-muted-foreground">
-                                JPG, PNG, GIF o WebP. Máximo 5MB.
-                            </p>
+                                <div>
+                                    <CardTitle>Información Personal</CardTitle>
+                                    <CardDescription>Actualiza tus datos básicos</CardDescription>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-6">
+                                {/* Photo Upload Section */}
+                                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 pb-6 border-b border-border/50">
+                                    <div className="relative group">
+                                        <Avatar className="h-28 w-28 border-4 border-white shadow-md">
+                                            <AvatarImage src={getImageUrl(user.profileImage)} className="object-cover" />
+                                            <AvatarFallback className="text-3xl bg-gradient-to-br from-indigo-50 to-indigo-100 text-indigo-600">
+                                                {user.name.charAt(0).toUpperCase()}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <Label
+                                            htmlFor="picture"
+                                            className="absolute bottom-0 right-0 p-2 bg-zinc-900 text-white rounded-full cursor-pointer hover:bg-zinc-800 transition-all shadow-lg border-2 border-white"
+                                        >
+                                            <Camera className="h-4 w-4" />
+                                            <Input
+                                                id="picture"
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                onChange={handleImageChange}
+                                            />
+                                        </Label>
+                                    </div>
+                                    <div className="text-center sm:text-left space-y-1 pt-2">
+                                        <h3 className="font-medium text-gray-900">Foto de Perfil</h3>
+                                        <p className="text-sm text-muted-foreground max-w-xs">
+                                            Sube una imagen para personalizar tu perfil.
+                                            <br className="hidden sm:block" />
+                                            Formatos permitidos: JPG, PNG, GIF.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Personal Info Form */}
+                                <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="name">Nombre Completo</Label>
+                                            <Input
+                                                id="name"
+                                                {...profileForm.register("name")}
+                                                className="bg-gray-50/50 focus:bg-white transition-all"
+                                                placeholder="Tu nombre"
+                                            />
+                                            {profileForm.formState.errors.name && (
+                                                <p className="text-xs text-red-500 font-medium">{profileForm.formState.errors.name.message}</p>
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="email">Correo Electrónico</Label>
+                                            <Input
+                                                id="email"
+                                                {...profileForm.register("email")}
+                                                disabled={!isAdmin}
+                                                className="bg-gray-50/50 focus:bg-white transition-all disabled:opacity-70"
+                                            />
+                                            {profileForm.formState.errors.email && (
+                                                <p className="text-xs text-red-500 font-medium">{profileForm.formState.errors.email.message}</p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex justify-end">
+                                        <Button
+                                            type="submit"
+                                            disabled={profileForm.formState.isSubmitting || !profileForm.formState.isDirty}
+                                            className="min-w-[140px]"
+                                        >
+                                            {profileForm.formState.isSubmitting ? (
+                                                <>
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    Guardando...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Save className="mr-2 h-4 w-4" />
+                                                    Guardar Cambios
+                                                </>
+                                            )}
+                                        </Button>
+                                    </div>
+                                </form>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Right Column: Security Card */}
+                <div className="lg:col-span-1 space-y-6">
+                    <Card className="border-border/60 shadow-sm h-full">
+                        <CardHeader>
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-orange-500/10 rounded-lg">
+                                    <Lock className="h-5 w-5 text-orange-600" />
+                                </div>
+                                <div>
+                                    <CardTitle>Seguridad</CardTitle>
+                                    <CardDescription>Actualiza tu contraseña</CardDescription>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="currentPassword">Contraseña Actual</Label>
+                                    <Input
+                                        id="currentPassword"
+                                        type="password"
+                                        {...passwordForm.register("currentPassword")}
+                                        className="bg-gray-50/50 focus:bg-white"
+                                        placeholder="••••••••"
+                                    />
+                                    {passwordForm.formState.errors.currentPassword && (
+                                        <p className="text-xs text-red-500 font-medium">{passwordForm.formState.errors.currentPassword.message}</p>
+                                    )}
+                                </div>
+                                <Separator className="my-2" />
+                                <div className="space-y-2">
+                                    <Label htmlFor="newPassword">Nueva Contraseña</Label>
+                                    <Input
+                                        id="newPassword"
+                                        type="password"
+                                        {...passwordForm.register("newPassword")}
+                                        className="bg-gray-50/50 focus:bg-white"
+                                        placeholder="••••••••"
+                                    />
+                                    {passwordForm.formState.errors.newPassword && (
+                                        <p className="text-xs text-red-500 font-medium">{passwordForm.formState.errors.newPassword.message}</p>
+                                    )}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="confirmPassword">Confirmar Contraseña</Label>
+                                    <Input
+                                        id="confirmPassword"
+                                        type="password"
+                                        {...passwordForm.register("confirmPassword")}
+                                        className="bg-gray-50/50 focus:bg-white"
+                                        placeholder="••••••••"
+                                    />
+                                    {passwordForm.formState.errors.confirmPassword && (
+                                        <p className="text-xs text-red-500 font-medium">{passwordForm.formState.errors.confirmPassword.message}</p>
+                                    )}
+                                </div>
+
+                                <Button
+                                    type="submit"
+                                    variant="outline"
+                                    className="w-full mt-2"
+                                    disabled={passwordForm.formState.isSubmitting}
+                                >
+                                    {passwordForm.formState.isSubmitting ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                        "Actualizar Contraseña"
+                                    )}
+                                </Button>
+                            </form>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+
+            {/* Account Metadata Card */}
+            <Card className="border-border/60 shadow-sm bg-gray-50/50">
+                <CardContent className="py-4">
+                    <div className="flex flex-col sm:flex-row justify-between text-sm text-muted-foreground gap-2">
+                        <div className="flex gap-2">
+                            <span className="font-medium">ID de Usuario:</span>
+                            <span className="font-mono text-xs bg-gray-200 px-2 py-0.5 rounded">{user.id}</span>
                         </div>
-                    </div>
-
-                    {/* Name */}
-                    <div className="space-y-2">
-                        <Label htmlFor="name">Nombre</Label>
-                        <Input
-                            id="name"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="Tu nombre completo"
-                        />
-                    </div>
-
-                    {/* Email */}
-                    <div className="space-y-2">
-                        <Label htmlFor="email">Email</Label>
-                        <Input
-                            id="email"
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="tu@email.com"
-                            disabled={!isAdmin}
-                        />
-                        {!isAdmin && (
-                            <p className="text-xs text-muted-foreground">
-                                Solo los administradores pueden cambiar el email
-                            </p>
-                        )}
-                    </div>
-
-                    {/* Role (read-only) */}
-                    <div className="space-y-2">
-                        <Label htmlFor="role">Rol</Label>
-                        <Input
-                            id="role"
-                            value={user.role}
-                            disabled
-                            className="capitalize"
-                        />
-                    </div>
-
-                    {/* Save Button */}
-                    <div className="flex justify-end pt-4">
-                        <Button onClick={handleSave} disabled={saving} size="lg">
-                            <Save className="mr-2 h-4 w-4" />
-                            {saving ? "Guardando..." : "Guardar Cambios"}
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Account Info */}
-            <Card className="border-border/40">
-                <CardHeader>
-                    <CardTitle>Información de la Cuenta</CardTitle>
-                    <CardDescription>
-                        Detalles de tu cuenta
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between py-3 border-b border-border/40">
-                        <div>
-                            <p className="text-sm font-medium">ID de Usuario</p>
-                            <p className="text-sm text-muted-foreground mt-0.5">{user.id}</p>
-                        </div>
-                    </div>
-                    <div className="flex items-center justify-between py-3">
-                        <div>
-                            <p className="text-sm font-medium">Tipo de Cuenta</p>
-                            <p className="text-sm text-muted-foreground mt-0.5 capitalize">{user.role}</p>
+                        <div className="flex gap-2">
+                            <span className="font-medium">Rol:</span>
+                            <span className="capitalize px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded text-xs font-semibold">{user.role}</span>
                         </div>
                     </div>
                 </CardContent>

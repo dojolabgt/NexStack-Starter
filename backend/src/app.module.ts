@@ -10,6 +10,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { StorageModule } from './storage/storage.module';
 import { SettingsModule } from './settings/settings.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -21,6 +22,8 @@ import { SettingsModule } from './settings/settings.module';
           .default('development'),
         PORT: Joi.number().default(4000),
         FRONTEND_URL: Joi.string().required(),
+        FRONTEND_DASHBOARD_URL: Joi.string().required(),
+        FRONTEND_PUBLIC_URL: Joi.string().required(),
         DATABASE_HOST: Joi.string().required(),
         DATABASE_PORT: Joi.number().default(5432),
         DATABASE_USER: Joi.string().required(),
@@ -34,6 +37,11 @@ import { SettingsModule } from './settings/settings.module';
         STORAGE_TYPE: Joi.string().valid('local', 's3', 'cloudinary').default('local'),
         UPLOAD_MAX_SIZE: Joi.number().default(5242880),
         ALLOWED_IMAGE_TYPES: Joi.string().default('jpg,jpeg,png,webp,gif'),
+        MAIL_HOST: Joi.string().required(),
+        MAIL_PORT: Joi.number().required(),
+        MAIL_USER: Joi.string().allow('').optional(),
+        MAIL_PASSWORD: Joi.string().allow('').optional(),
+        MAIL_FROM: Joi.string().required(),
       }),
     }),
     ThrottlerModule.forRoot([
@@ -52,7 +60,9 @@ import { SettingsModule } from './settings/settings.module';
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: configService.get('NODE_ENV') !== 'production', // Auto-create tables (dev only)
+        migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
+        synchronize: false, // Usage of migrations is recommended for production
+        migrationsRun: configService.get('NODE_ENV') === 'production',
       }),
       inject: [ConfigService],
     }),
@@ -60,6 +70,7 @@ import { SettingsModule } from './settings/settings.module';
     UsersModule,
     AuthModule,
     SettingsModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [

@@ -39,9 +39,9 @@ async function bootstrap() {
   // Register global exception filter
   app.useGlobalFilters(new HttpExceptionFilter());
 
-  // Configure CORS with explicit settings
+  // Configure CORS with explicit settings for multiple frontends
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-  const allowedOrigins = frontendUrl.split(',');
+  const allowedOrigins = frontendUrl.split(',').map(url => url.trim());
 
   app.enableCors({
     origin: allowedOrigins,

@@ -36,10 +36,42 @@ interface UserDialogProps {
 
 export function UserDialog({ open, onOpenChange, userToEdit, onSuccess }: UserDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const isEditing = !!userToEdit;
 
-    const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<UserFormValues>({
-        resolver: zodResolver(userSchema),
+    // Schema refinement needs to be inside or memoized if we want to use 'isEditing' logic effectively,
+    // but typically we can use superRefine or just a base schema.
+    // Let's define the schema here to access `showPassword` if needed globally, or just keep it simple.
+    // For "Confirm Password", we need `refine` on the whole object.
+
+    const formSchema = z.object({
+        name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
+        email: z.string().email("Email inválido"),
+        role: z.nativeEnum(UserRole),
+        // Password is optional in schema, but we validate manually or via superRefine based on usage
+        password: z.string().optional(),
+        confirmPassword: z.string().optional(),
+    }).refine((data) => {
+        if (!isEditing) {
+            // Create mode: Password is required
+            if (!data.password) return false;
+            return data.password === data.confirmPassword;
+        }
+        if (showPassword) {
+            // Edit mode + Change Password: Password is required
+            if (!data.password) return false;
+            return data.password === data.confirmPassword;
+        }
+        return true;
+    }, {
+        message: "Las contraseñas no coinciden o son requeridas",
+        path: ["confirmPassword"], // Error path
+    });
+
+    type UserFormValues = z.infer<typeof formSchema>;
+
+    const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<UserFormValues>({
+        resolver: zodResolver(formSchema),
         defaultValues: {
             role: UserRole.USER,
         },
@@ -48,43 +80,58 @@ export function UserDialog({ open, onOpenChange, userToEdit, onSuccess }: UserDi
     // Reset form when dialog opens/closes or userToEdit changes
     useEffect(() => {
         if (open) {
+            setShowPassword(false); // Reset password toggle
             if (userToEdit) {
                 setValue("name", userToEdit.name);
                 setValue("email", userToEdit.email);
                 setValue("role", userToEdit.role);
-                setValue("password", ""); // Reset password field
+                setValue("password", "");
+                setValue("confirmPassword", "");
             } else {
                 reset({
                     name: "",
                     email: "",
-                    password: "",
                     role: UserRole.USER,
+                    password: "",
+                    confirmPassword: "",
                 });
             }
         }
     }, [open, userToEdit, setValue, reset]);
 
     const onSubmit = async (data: UserFormValues) => {
-        if (!isEditing && !data.password) {
-            // Manual validation for required password on create
-            toast.error("La contraseña es requerida para nuevos usuarios");
-            return;
-        }
-
         setIsLoading(true);
         try {
             if (isEditing && userToEdit) {
-                await updateUser(userToEdit.id, data as UpdateUserDto);
+                // Only send password if we are showing the fields and they are filled
+                const updateData: UpdateUserDto = {
+                    name: data.name,
+                    role: data.role,
+                };
+
+                // Email usually shouldn't be changed or needs backend support (it does, but common pattern is strict)
+                // If backend supports email change:
+                updateData.email = data.email;
+
+                if (showPassword && data.password) {
+                    updateData.password = data.password;
+                }
+
+                await updateUser(userToEdit.id, updateData);
                 toast.success("Usuario actualizado correctamente");
             } else {
-                await createUser(data as CreateUserDto);
+                await createUser({
+                    name: data.name,
+                    email: data.email,
+                    role: data.role,
+                    password: data.password!, // Validated by schema
+                });
                 toast.success("Usuario creado correctamente");
             }
             onSuccess();
             onOpenChange(false);
         } catch (error) {
             console.error(error);
-            // Safe casting for error response
             const err = error as { response?: { data?: { message?: string } } };
             toast.error(err.response?.data?.message || "Ocurrió un error al guardar el usuario");
         } finally {
@@ -94,7 +141,7 @@ export function UserDialog({ open, onOpenChange, userToEdit, onSuccess }: UserDi
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent>
+            <DialogContent className="max-w-2xl">
                 <DialogHeader>
                     <DialogTitle>
                         {isEditing ? "Editar Usuario" : "Nuevo Usuario"}
@@ -104,63 +151,144 @@ export function UserDialog({ open, onOpenChange, userToEdit, onSuccess }: UserDi
                     </DialogDescription>
                 </DialogHeader>
 
-                <form onSubmit={handleSubmit(onSubmit)} className="px-6 py-6 space-y-5">
-                    <div className="space-y-2">
-                        <Label htmlFor="name">Nombre Completo</Label>
-                        <Input
-                            id="name"
-                            {...register("name")}
-                            placeholder="Ej. Juan Pérez"
-                        />
-                        {errors.name && <p className="text-xs font-medium text-red-500 animate-pulse">{errors.name.message}</p>}
-                    </div>
+                <form onSubmit={handleSubmit(onSubmit)} className="px-6 py-6 space-y-6">
 
-                    <div className="space-y-2">
-                        <Label htmlFor="email">Correo Electrónico</Label>
-                        <Input
-                            id="email"
-                            type="email"
-                            {...register("email")}
-                            placeholder="ejemplo@correo.com"
-                            disabled={isEditing}
-                        />
-                        {errors.email && <p className="text-xs font-medium text-red-500 animate-pulse">{errors.email.message}</p>}
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
+                    {/* Grid Layout for Personal Info */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                            <Label htmlFor="role">Rol</Label>
+                            <Label htmlFor="name">Nombre Completo</Label>
+                            <Input
+                                id="name"
+                                {...register("name")}
+                                placeholder="Ej. Juan Pérez"
+                                className="bg-gray-50/50 border-gray-200 focus:bg-white transition-all"
+                            />
+                            {errors.name && <p className="text-xs font-medium text-red-500 animate-pulse">{errors.name.message}</p>}
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="email">Correo Electrónico</Label>
+                            <Input
+                                id="email"
+                                type="email"
+                                {...register("email")}
+                                placeholder="ejemplo@correo.com"
+                                className="bg-gray-50/50 border-gray-200 focus:bg-white transition-all"
+                            />
+                            {errors.email && <p className="text-xs font-medium text-red-500 animate-pulse">{errors.email.message}</p>}
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="role">Rol de Usuario</Label>
                             <Select
                                 onValueChange={(val) => setValue("role", val as UserRole)}
                                 defaultValue={userToEdit?.role || UserRole.USER}
                             >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Selecciona" />
+                                <SelectTrigger className="bg-gray-50/50 border-gray-200 focus:bg-white transition-all">
+                                    <SelectValue placeholder="Selecciona un rol" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value={UserRole.ADMIN}>Administrador</SelectItem>
-                                    <SelectItem value={UserRole.TEAM}>Equipo</SelectItem>
-                                    <SelectItem value={UserRole.USER}>Usuario</SelectItem>
+                                    <SelectItem value={UserRole.ADMIN}>
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-medium text-indigo-600">Administrador</span>
+                                            <span className="text-xs text-gray-400">- Acceso total</span>
+                                        </div>
+                                    </SelectItem>
+                                    <SelectItem value={UserRole.TEAM}>
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-medium text-blue-600">Equipo</span>
+                                            <span className="text-xs text-gray-400">- Gestión de contenidos</span>
+                                        </div>
+                                    </SelectItem>
+                                    <SelectItem value={UserRole.USER}>
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-medium text-gray-600">Usuario</span>
+                                            <span className="text-xs text-gray-400">- Acceso limitado</span>
+                                        </div>
+                                    </SelectItem>
                                 </SelectContent>
                             </Select>
                             {errors.role && <p className="text-xs font-medium text-red-500 animate-pulse">{errors.role.message}</p>}
                         </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="password">
-                                Contraseña {isEditing && <span className="text-zinc-400 font-normal normal-case">(Opcional)</span>}
-                            </Label>
-                            <Input
-                                id="password"
-                                type="password"
-                                {...register("password")}
-                                placeholder="••••••••"
-                            />
-                            {errors.password && <p className="text-xs font-medium text-red-500 animate-pulse">{errors.password.message}</p>}
-                        </div>
                     </div>
 
-                    <DialogFooter>
+                    <div className="border-t border-gray-100 pt-4">
+
+                        {isEditing && !showPassword && (
+                            <div className="flex items-center justify-between bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                <div>
+                                    <h4 className="text-sm font-medium text-gray-900">Contraseña</h4>
+                                    <p className="text-xs text-gray-500">La contraseña no se muestra por seguridad.</p>
+                                </div>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setShowPassword(true)}
+                                    className="text-zinc-700 border-zinc-200 hover:bg-white hover:border-zinc-300"
+                                >
+                                    Cambiar Contraseña
+                                </Button>
+                            </div>
+                        )}
+
+                        {(showPassword || !isEditing) && (
+                            <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                <div className="flex items-center justify-between">
+                                    <Label className="text-base font-medium text-gray-900">
+                                        {isEditing ? "Nueva Contraseña" : "Contraseña"}
+                                    </Label>
+                                    {isEditing && (
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => setShowPassword(false)}
+                                            className="h-auto p-0 text-xs text-gray-400 hover:text-gray-900"
+                                        >
+                                            Cancelar cambio
+                                        </Button>
+                                    )}
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="password">Contraseña</Label>
+                                        <Input
+                                            id="password"
+                                            type="password"
+                                            {...register("password")}
+                                            placeholder="••••••••"
+                                            className="bg-gray-50/50 border-gray-200 focus:bg-white transition-all"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="confirmPassword">Confirmar Contraseña</Label>
+                                        <Input
+                                            id="confirmPassword"
+                                            type="password"
+                                            {...register("confirmPassword")}
+                                            placeholder="••••••••"
+                                            className="bg-gray-50/50 border-gray-200 focus:bg-white transition-all"
+                                        />
+                                    </div>
+                                </div>
+                                {(errors.password || errors.confirmPassword) && (
+                                    <div className="p-3 rounded-lg bg-red-50 border border-red-100 flex items-start gap-2">
+                                        <svg className="h-4 w-4 text-red-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                        <span className="text-xs font-medium text-red-600">
+                                            {errors.password?.message || errors.confirmPassword?.message || "Las contraseñas no coinciden"}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    <DialogFooter className="pt-2">
                         <Button
                             type="button"
                             variant="ghost"

@@ -15,6 +15,7 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRateLimit } from "@/hooks/useRateLimit";
 import { LOGIN_MAX_ATTEMPTS, LOGIN_RATE_LIMIT_WINDOW, LOGIN_BLOCK_DURATION } from "@/lib/constants";
+import Link from "next/link";
 
 const loginSchema = z.object({
     email: z.string().email("Email inválido").min(1, "El email es requerido"),
@@ -143,9 +144,9 @@ export function LoginForm({ onSuccess, role = "user" }: LoginFormProps) {
                     />
                     <Label htmlFor="remember" className="text-sm font-normal">Recordarme</Label>
                 </div>
-                <a href="#" className="text-sm font-medium text-primary hover:underline">
+                <Link href="/forgot-password" className="text-sm font-medium text-primary hover:underline">
                     ¿Olvidaste tu contraseña?
-                </a>
+                </Link>
             </div>
 
             <Button type="submit" className="w-full" disabled={isLoading}>

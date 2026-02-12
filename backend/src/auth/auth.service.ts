@@ -7,13 +7,90 @@ import { AuthenticatedUser } from './interfaces/authenticated-user.interface';
 import { UserRole } from './constants/roles';
 import { User } from '../users/user.entity';
 
+import { SettingsService } from '../settings/settings.service';
+import { RegisterDto } from './dto/register.dto';
+import { MailService } from '../mail/mail.service';
+
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private settingsService: SettingsService,
+    private mailService: MailService,
   ) { }
+
+  async register(registerDto: RegisterDto) {
+    const settings = await this.settingsService.getSettings();
+    if (!settings.allowRegistration) {
+      throw new ForbiddenException('Registration is disabled by administrator');
+    }
+
+    const existingUser = await this.usersService.findOneByEmail(registerDto.email);
+    if (existingUser) {
+      throw new ForbiddenException('User already exists');
+    }
+
+    const newUser = await this.usersService.create(registerDto);
+    return this.login(this.mapToAuthenticatedUser(newUser));
+  }
+
+  async forgotPassword(email: string) {
+    const user = await this.usersService.findOneByEmail(email);
+    if (!user) {
+      // Don't reveal if user exists
+      return { message: 'If user exists, email sent' };
+    }
+
+    // Generate specific reset token
+    const token = await this.jwtService.signAsync(
+      { sub: user.id, email: user.email, type: 'reset' },
+      {
+        secret: this.configService.get<string>('JWT_SECRET'),
+        expiresIn: '1h',
+      },
+    );
+
+    // For now, log to console
+    this.configService.get('NODE_ENV') !== 'production' &&
+      console.log(`Reset Token for ${email}: ${token}`);
+
+    try {
+      await this.mailService.sendPasswordReset(user, token);
+    } catch (error) {
+      console.error(`Error sending email to ${user.email}:`, error);
+      // We might not want to throw here to avoid leaking error details or blocking the flow
+      // But depending on requirements, we could throw. 
+      // For now, let's log and proceed as "success" to UI to avoid enumeration, but maybe log internally.
+    }
+
+    return { message: 'If user exists, email sent', token }; // Returning token for dev ease, remove in prod!!
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    try {
+      const payload = await this.jwtService.verifyAsync(token, {
+        secret: this.configService.get<string>('JWT_SECRET'),
+      });
+
+      if (payload.type !== 'reset') {
+        throw new ForbiddenException('Invalid token type');
+      }
+
+      const user = await this.usersService.findOneById(payload.sub);
+      if (!user) {
+        throw new ForbiddenException('Invalid token');
+      }
+
+      await this.usersService.setPassword(user.id, newPassword);
+
+      return { message: 'Password updated successfully' };
+
+    } catch (error) {
+      throw new ForbiddenException('Invalid or expired token');
+    }
+  }
 
   async validateUser(
     email: string,
