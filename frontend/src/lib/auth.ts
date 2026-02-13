@@ -50,7 +50,7 @@ export const checkAuth = async () => {
     try {
         const response = await api.get('/auth/me');
         return response.data;
-    } catch (error) {
+    } catch (_error) {
         // Silent fail - user is not authenticated
         // This is expected behavior on login page and public routes
         return false;

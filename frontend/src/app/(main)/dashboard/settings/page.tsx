@@ -206,7 +206,7 @@ export default function SettingsPage() {
                                 <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 pb-6 border-b border-border/50">
                                     <div className="relative group">
                                         <Avatar className="h-28 w-28 border-4 border-white shadow-md">
-                                            <AvatarImage src={getImageUrl(user.profileImage)} className="object-cover" />
+                                            <AvatarImage src={getImageUrl(user.profileImage)} alt={user.name} className="object-cover" />
                                             <AvatarFallback className="text-3xl bg-gradient-to-br from-indigo-50 to-indigo-100 text-indigo-600">
                                                 {user.name.charAt(0).toUpperCase()}
                                             </AvatarFallback>

@@ -1,18 +1,18 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   output: "standalone",
   reactCompiler: true,
   images: {
     remotePatterns: [
       {
         protocol: 'http',
-        hostname: 'localhost',
+        hostname: 'backend',
         port: '4000',
-        pathname: '/uploads/**',
+        pathname: '/**',
       },
     ],
+    formats: ['image/avif', 'image/webp'],
   },
 };
 

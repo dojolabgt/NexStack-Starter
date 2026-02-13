@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/common/Label";
 import { Input } from "@/components/common/Input";
@@ -49,8 +50,7 @@ export default function AppSettingsPage() {
             setSecondaryColor(data.secondaryColor);
             setAllowRegistration(data.allowRegistration);
             setMaintenanceMode(data.maintenanceMode);
-        } catch (error) {
-            console.error("Failed to load settings:", error);
+        } catch (_error) {
             toast.error("Error al cargar la configuración");
         } finally {
             setLoading(false);
@@ -69,8 +69,7 @@ export default function AppSettingsPage() {
             });
             setSettings(updated);
             toast.success("Configuración actualizada correctamente");
-        } catch (error) {
-            console.error("Failed to update settings:", error);
+        } catch (_error) {
             toast.error("Error al actualizar la configuración");
         } finally {
             setSaving(false);
@@ -95,8 +94,7 @@ export default function AppSettingsPage() {
             const updated = await uploadLogo(file);
             setSettings(updated);
             toast.success("Logo subido correctamente");
-        } catch (error) {
-            console.error("Failed to upload logo:", error);
+        } catch (_error) {
             toast.error("Error al subir el logo");
         }
     };
@@ -119,8 +117,7 @@ export default function AppSettingsPage() {
             const updated = await uploadFavicon(file);
             setSettings(updated);
             toast.success("Favicon subido correctamente");
-        } catch (error) {
-            console.error("Failed to upload favicon:", error);
+        } catch (_error) {
             toast.error("Error al subir el favicon");
         }
     };
@@ -215,12 +212,13 @@ export default function AppSettingsPage() {
                                 <div className="space-y-3">
                                     <Label>Logo Principal</Label>
                                     <div className="flex items-center gap-6 p-4 border border-border/40 rounded-lg bg-gray-50/30">
-                                        <div className="h-20 w-20 rounded-lg border border-border bg-white flex items-center justify-center shadow-sm overflow-hidden shrink-0">
+                                        <div className="h-20 w-20 rounded-lg border border-border bg-white flex items-center justify-center shadow-sm overflow-hidden shrink-0 relative">
                                             {settings?.appLogo ? (
-                                                <img
+                                                <Image
                                                     src={getImageUrl(settings.appLogo) || ''}
                                                     alt="App Logo"
-                                                    className="object-contain w-full h-full p-2"
+                                                    fill
+                                                    className="object-contain p-2"
                                                 />
                                             ) : (
                                                 <span className="text-2xl font-bold text-muted-foreground/30">
@@ -257,12 +255,13 @@ export default function AppSettingsPage() {
                                 <div className="space-y-3">
                                     <Label>Favicon</Label>
                                     <div className="flex items-center gap-6 p-4 border border-border/40 rounded-lg bg-gray-50/30">
-                                        <div className="h-12 w-12 rounded border border-border bg-white flex items-center justify-center shadow-sm overflow-hidden shrink-0">
+                                        <div className="h-12 w-12 rounded border border-border bg-white flex items-center justify-center shadow-sm overflow-hidden shrink-0 relative">
                                             {settings?.appFavicon ? (
-                                                <img
+                                                <Image
                                                     src={getImageUrl(settings.appFavicon) || ''}
                                                     alt="Favicon"
-                                                    className="object-contain w-full h-full"
+                                                    fill
+                                                    className="object-contain"
                                                 />
                                             ) : (
                                                 <SettingsIcon className="h-6 w-6 text-muted-foreground/30" />

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Construction, Clock, Mail } from "lucide-react";
+import Image from "next/image";
 import { getSettings, type AppSettings } from "@/lib/settings-service";
 import { getImageUrl } from "@/lib/image-utils";
 
@@ -13,16 +14,16 @@ export default function MaintenancePage() {
             try {
                 const data = await getSettings();
                 setSettings(data);
-            } catch (error) {
-                console.error("Failed to load settings:", error);
+            } catch (_error) {
+                // Silent fail - will use fallback values
             }
         };
         loadSettings();
     }, []);
 
-    const appName = settings?.appName || "Pablo Lacán";
+    const appName = settings?.appName || "Dashboard";
     const appLogo = settings?.appLogo ? getImageUrl(settings.appLogo) : null;
-    const primaryColor = settings?.primaryColor || "#3B82F6";
+    const primaryColor = settings?.primaryColor || "#abbfe0ff";
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 flex items-center justify-center p-4">
@@ -30,11 +31,15 @@ export default function MaintenancePage() {
                 {/* Logo and App Name */}
                 <div className="flex flex-col items-center gap-4">
                     {appLogo ? (
-                        <img
-                            src={appLogo}
-                            alt={appName}
-                            className="h-24 w-24 rounded-2xl object-cover shadow-2xl"
-                        />
+                        <div className="relative h-24 w-24 rounded-2xl overflow-hidden shadow-2xl">
+                            <Image
+                                src={appLogo}
+                                alt={appName}
+                                fill
+                                className="object-cover"
+                                priority
+                            />
+                        </div>
                     ) : (
                         <div
                             className="h-24 w-24 rounded-2xl flex items-center justify-center shadow-2xl"

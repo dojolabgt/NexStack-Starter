@@ -2,7 +2,7 @@
 "use client";
 
 import { login } from "@/lib/auth";
-import { getErrorMessage, isAxiosError } from "@/lib/utils/type-guards";
+import { getErrorMessage } from "@/lib/utils/type-guards";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";

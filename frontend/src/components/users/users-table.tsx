@@ -187,7 +187,7 @@ export function UsersTable() {
                                                 <TableCell className="font-medium">
                                                     <div className="flex items-center gap-3">
                                                         <Avatar className="h-9 w-9 border border-gray-100 shadow-sm transition-transform group-hover:scale-105">
-                                                            <AvatarImage src={getImageUrl(user.profileImage)} />
+                                                            <AvatarImage src={getImageUrl(user.profileImage)} alt={user.name} />
                                                             <AvatarFallback className="bg-gradient-to-br from-indigo-50 to-white text-indigo-600 font-medium text-xs">
                                                                 {user.name.slice(0, 2).toUpperCase()}
                                                             </AvatarFallback>
@@ -246,7 +246,7 @@ export function UsersTable() {
                                                 <div className="flex items-start justify-between">
                                                     <div className="flex items-center gap-3">
                                                         <Avatar className="h-10 w-10 border border-gray-100 shadow-sm">
-                                                            <AvatarImage src={getImageUrl(user.profileImage)} />
+                                                            <AvatarImage src={getImageUrl(user.profileImage)} alt={user.name} />
                                                             <AvatarFallback className="bg-gradient-to-br from-indigo-50 to-white text-indigo-600 font-medium text-xs">
                                                                 {user.name.slice(0, 2).toUpperCase()}
                                                             </AvatarFallback>

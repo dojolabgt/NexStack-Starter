@@ -55,6 +55,7 @@ services:
       - "3000:3000"
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      NEXT_PUBLIC_IMAGE_BACKEND_URL: ${NEXT_PUBLIC_IMAGE_BACKEND_URL}
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -72,6 +73,7 @@ services:
     environment:
       NODE_ENV: development
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      NEXT_PUBLIC_IMAGE_BACKEND_URL: ${NEXT_PUBLIC_IMAGE_BACKEND_URL}
       NEXT_PUBLIC_DASHBOARD_URL: ${NEXT_PUBLIC_DASHBOARD_URL}
     volumes:
       - ./frontend-public:/app

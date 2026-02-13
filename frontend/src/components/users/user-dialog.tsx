@@ -9,23 +9,10 @@ import { Button } from "@/components/common/Button";
 import { Input } from "@/components/common/Input";
 import { Label } from "@/components/common/Label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/common/Select";
-import { CreateUserDto, UpdateUserDto, User, createUser, updateUser } from "@/lib/users-service";
+import { UpdateUserDto, User, createUser, updateUser } from "@/lib/users-service";
 import { toast } from "sonner";
 
 import { UserRole } from "@/lib/types/enums";
-
-const userSchema = z.object({
-    name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
-    email: z.string().email("Email inválido"),
-    password: z.string().optional(),
-    role: z.nativeEnum(UserRole),
-}).refine(() => {
-    // If it's a new user (no ID logic inside here, but we can check if password is empty), password is required
-    // Actually, passing `isEditing` to the schema is harder. Let's do validation in component or assume optional is fine and check manually.
-    return true;
-});
-
-type UserFormValues = z.infer<typeof userSchema>;
 
 interface UserDialogProps {
     open: boolean;
@@ -39,16 +26,10 @@ export function UserDialog({ open, onOpenChange, userToEdit, onSuccess }: UserDi
     const [showPassword, setShowPassword] = useState(false);
     const isEditing = !!userToEdit;
 
-    // Schema refinement needs to be inside or memoized if we want to use 'isEditing' logic effectively,
-    // but typically we can use superRefine or just a base schema.
-    // Let's define the schema here to access `showPassword` if needed globally, or just keep it simple.
-    // For "Confirm Password", we need `refine` on the whole object.
-
     const formSchema = z.object({
         name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
         email: z.string().email("Email inválido"),
         role: z.nativeEnum(UserRole),
-        // Password is optional in schema, but we validate manually or via superRefine based on usage
         password: z.string().optional(),
         confirmPassword: z.string().optional(),
     }).refine((data) => {
@@ -65,12 +46,13 @@ export function UserDialog({ open, onOpenChange, userToEdit, onSuccess }: UserDi
         return true;
     }, {
         message: "Las contraseñas no coinciden o son requeridas",
-        path: ["confirmPassword"], // Error path
+        path: ["confirmPassword"],
     });
 
     type UserFormValues = z.infer<typeof formSchema>;
 
-    const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<UserFormValues>({
+    // ✅ Removido 'watch' de la desestructuración
+    const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<UserFormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             role: UserRole.USER,
@@ -80,7 +62,7 @@ export function UserDialog({ open, onOpenChange, userToEdit, onSuccess }: UserDi
     // Reset form when dialog opens/closes or userToEdit changes
     useEffect(() => {
         if (open) {
-            setShowPassword(false); // Reset password toggle
+            setShowPassword(false);
             if (userToEdit) {
                 setValue("name", userToEdit.name);
                 setValue("email", userToEdit.email);
@@ -103,14 +85,11 @@ export function UserDialog({ open, onOpenChange, userToEdit, onSuccess }: UserDi
         setIsLoading(true);
         try {
             if (isEditing && userToEdit) {
-                // Only send password if we are showing the fields and they are filled
                 const updateData: UpdateUserDto = {
                     name: data.name,
                     role: data.role,
                 };
 
-                // Email usually shouldn't be changed or needs backend support (it does, but common pattern is strict)
-                // If backend supports email change:
                 updateData.email = data.email;
 
                 if (showPassword && data.password) {
@@ -124,7 +103,7 @@ export function UserDialog({ open, onOpenChange, userToEdit, onSuccess }: UserDi
                     name: data.name,
                     email: data.email,
                     role: data.role,
-                    password: data.password!, // Validated by schema
+                    password: data.password!,
                 });
                 toast.success("Usuario creado correctamente");
             }

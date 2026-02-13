@@ -1,6 +1,5 @@
 "use client";
-
-import { useEffect, useState } from "react";
+import { useEffect, useState, startTransition } from "react";
 import { usePathname } from "next/navigation";
 
 /**
@@ -13,9 +12,11 @@ export function TopLoader() {
     const [progress, setProgress] = useState(0);
 
     useEffect(() => {
-        // Start loading on route change
-        setLoading(true);
-        setProgress(20);
+        // Use startTransition to avoid cascading renders
+        startTransition(() => {
+            setLoading(true);
+            setProgress(20);
+        });
 
         // Simulate progress
         const timer1 = setTimeout(() => setProgress(40), 100);

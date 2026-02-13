@@ -8,7 +8,6 @@ import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { getSettings, type AppSettings } from "@/lib/settings-service";
-import { getImageUrl } from "@/lib/image-utils";
 import { AppBranding } from "@/components/common/AppBranding";
 import { logger } from "@/lib/logger";
 
@@ -36,9 +35,6 @@ export default function LoginPage() {
         };
         loadSettings();
     }, []);
-
-    const appName = settings?.appName || process.env.NEXT_PUBLIC_APP_NAME || "Dashboard";
-    const appLogo = settings?.appLogo ? getImageUrl(settings.appLogo) : null;
 
     return (
         <div className="w-full min-h-screen lg:grid lg:grid-cols-[45%_55%]">

@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
@@ -21,7 +20,6 @@ import { toast } from "sonner";
 import { register } from "@/lib/auth";
 import { AppBranding } from "@/components/common/AppBranding";
 import { getSettings, type AppSettings } from "@/lib/settings-service";
-import { getImageUrl } from "@/lib/image-utils";
 
 const registerSchema = z
     .object({
@@ -40,7 +38,7 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 export default function RegisterPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
-    const [settings, setSettings] = useState<AppSettings | null>(null);
+    const [_settings, setSettings] = useState<AppSettings | null>(null);
 
     // Load settings
     useEffect(() => {
@@ -48,8 +46,8 @@ export default function RegisterPage() {
             try {
                 const data = await getSettings();
                 setSettings(data);
-            } catch (error) {
-                console.error("Failed to load settings:", error);
+            } catch (_error) {
+                // Silent fail - settings are optional
             }
         };
         loadSettings();
@@ -75,9 +73,10 @@ export default function RegisterPage() {
             });
             toast.success("Cuenta creada exitosamente");
             router.push("/dashboard");
-        } catch (error: any) {
+        } catch (error) {
             console.error("Registration error:", error);
-            if (error.response?.status === 403) {
+            const err = error as { response?: { status?: number } };
+            if (err.response?.status === 403) {
                 toast.error("El registro de nuevos usuarios está deshabilitado.");
             } else {
                 toast.error("Error al crear la cuenta. Intente nuevamente.");
@@ -184,7 +183,6 @@ export default function RegisterPage() {
             <div className="hidden lg:flex flex-col relative bg-zinc-950 text-white overflow-hidden">
                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay pointer-events-none" />
                 <div className="absolute -top-[20%] -right-[10%] w-[600px] h-[600px] bg-zinc-800/20 rounded-full blur-3xl pointer-events-none" />
-
                 <div className="relative z-10 px-16 pt-24 max-w-2xl">
                     <h2 className="text-5xl font-bold leading-tight tracking-tight mb-6">
                         Únete a nuestro <br /> ecosistema digital.

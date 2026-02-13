@@ -2,20 +2,7 @@ import { renderHook, waitFor, act } from '@testing-library/react';
 import { useAuth, AuthProvider } from '@/contexts/auth-context';
 import * as authLib from '@/lib/auth';
 import { vi, describe, it, expect, beforeEach, Mock } from 'vitest';
-
-// Mock lib/auth
-vi.mock('@/lib/auth', () => ({
-    checkAuth: vi.fn(),
-    login: vi.fn(),
-    logout: vi.fn(),
-}));
-
-// Mock useRouter
-vi.mock('next/navigation', () => ({
-    useRouter: () => ({
-        push: vi.fn(),
-    }),
-}));
+import { User } from '@/lib/types/api.types';
 
 describe('useAuth', () => {
     beforeEach(() => {
@@ -33,7 +20,14 @@ describe('useAuth', () => {
     });
 
     it('should set user if checkAuth succeeds', async () => {
-        const mockUser = { id: '1', email: 'test@test.com', name: 'Test', role: 'user' };
+        const mockUser: User = {
+            id: '1',
+            email: 'test@test.com',
+            name: 'Test',
+            role: 'client',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        };
         (authLib.checkAuth as Mock).mockResolvedValue(mockUser);
 
         const { result } = renderHook(() => useAuth(), { wrapper });
@@ -52,8 +46,14 @@ describe('useAuth', () => {
     });
 
     it('should handle login success', async () => {
-        const mockUser = { id: '1', email: 'test@test.com', name: 'Test', role: 'user' };
-
+        const mockUser: User = {
+            id: '1',
+            email: 'test@test.com',
+            name: 'Test',
+            role: 'client',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        };
         // Setup initial state (not logged in)
         (authLib.checkAuth as Mock).mockResolvedValue(null);
 
@@ -62,15 +62,21 @@ describe('useAuth', () => {
 
         // Act
         await act(async () => {
-            // Mock login function to mimic API behavior (User object, not credentials)
-            await result.current.login(mockUser as any);
+            await result.current.login(mockUser);
         });
 
         expect(result.current.user).toEqual(mockUser);
     });
 
     it('should handle logout', async () => {
-        const mockUser = { id: '1', email: 'test@test.com', name: 'Test', role: `user` };
+        const mockUser: User = {
+            id: '1',
+            email: 'test@test.com',
+            name: 'Test',
+            role: 'client',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+        };
         (authLib.checkAuth as Mock).mockResolvedValue(mockUser);
 
         const { result } = renderHook(() => useAuth(), { wrapper });

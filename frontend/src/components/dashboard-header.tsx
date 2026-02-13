@@ -78,7 +78,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className="hidden md:flex rounded-full pl-2 pr-4 py-6 hover:bg-gray-100 items-center gap-3">
                                 <Avatar className="h-8 w-8 border border-gray-200">
-                                    <AvatarImage src={getImageUrl(user?.profileImage)} />
+                                    <AvatarImage src={getImageUrl(user?.profileImage)} alt={user?.name || "User Avatar"} />
                                     <AvatarFallback className="bg-zinc-900 text-white text-xs">
                                         {user?.name?.charAt(0).toUpperCase() || "U"}
                                     </AvatarFallback>

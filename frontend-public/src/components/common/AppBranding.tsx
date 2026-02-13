@@ -1,4 +1,5 @@
 import { useSettings } from '@/hooks/useSettings';
+import Image from 'next/image';
 
 interface AppBrandingProps {
     variant?: 'default' | 'compact' | 'login';
@@ -28,11 +29,13 @@ export function AppBranding({
             : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}${settings.appLogo}`)
         : null;
 
-    const logoSize = {
-        compact: 'h-8 w-8',
-        default: 'h-10 w-10',
-        login: 'h-16 w-16'
-    }[variant];
+    const logoSizeMap = {
+        compact: { size: 32, className: 'h-8 w-8' },
+        default: { size: 40, className: 'h-10 w-10' },
+        login: { size: 64, className: 'h-16 w-16' }
+    };
+
+    const { size: logoSize, className: logoClassName } = logoSizeMap[variant];
 
     const textSize = {
         compact: 'text-base',
@@ -43,15 +46,20 @@ export function AppBranding({
     return (
         <div className={`flex items-center gap-3 ${className}`}>
             {logoUrl && (
-                <img
-                    src={logoUrl}
-                    alt={settings?.appName || 'Logo'}
-                    className={`${logoSize} object-contain`}
-                />
+                <div className={`relative ${logoClassName}`}>
+                    <Image
+                        src={logoUrl}
+                        alt={settings?.appName || 'Logo'}
+                        width={logoSize}
+                        height={logoSize}
+                        className="object-contain"
+                        priority={variant === 'login'}
+                    />
+                </div>
             )}
             {showName && (
                 <span className={`font-bold ${textSize}`}>
-                    {settings?.appName || 'Dashboard'}
+                    {settings?.appName || 'Site-name'}
                 </span>
             )}
         </div>
