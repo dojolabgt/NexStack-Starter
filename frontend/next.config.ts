@@ -7,12 +7,18 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'http',
-        hostname: 'backend',
-        port: '4000',
-        pathname: '/**',
-      },
+        hostname: 'localhost',
+      }
     ],
     formats: ['image/avif', 'image/webp'],
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/backend-images/:path*',
+        destination: 'http://backend:4000/:path*',
+      },
+    ];
   },
 };
 

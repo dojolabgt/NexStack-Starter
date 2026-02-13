@@ -23,14 +23,6 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Dashboard App",
-  description: "Modern Dashboard Application",
-  icons: {
-    icon: "/favicon.ico",
-  },
-};
-
 export default function RootLayout({
   children,
 }: Readonly<{

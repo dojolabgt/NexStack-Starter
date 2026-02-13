@@ -67,7 +67,6 @@ export function AppBranding({
                         height={logoSize}
                         className="object-contain"
                         priority={variant === 'login'}
-                        unoptimized={true}
                     />
                 </div>
             )}
