@@ -4,7 +4,6 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { TopLoader } from "@/components/ui/top-loader";
 import { ClientProviders } from "@/components/providers/client-providers";
-import { Metadata } from "next";
 
 const inter = Inter({
   variable: "--font-inter",

@@ -18,7 +18,7 @@ const TableContainer = React.forwardRef<HTMLDivElement, React.ComponentProps<"di
         <div
             ref={ref}
             className={cn(
-                "rounded-3xl overflow-hidden border border-gray-100 shadow-xl shadow-gray-200/40 bg-white",
+                "rounded-3xl overflow-hidden border border-gray-100 dark:border-zinc-800 shadow-xl shadow-gray-200/40 dark:shadow-zinc-950/40 bg-white dark:bg-zinc-900",
                 className
             )}
             {...props}
@@ -38,7 +38,7 @@ Table.displayName = "Table";
 
 const TableHeader = React.forwardRef<HTMLTableSectionElement, React.ComponentProps<typeof UiTableHeader>>(
     ({ className, ...props }, ref) => (
-        <UiTableHeader ref={ref} className={cn("bg-gray-50/30", className)} {...props} />
+        <UiTableHeader ref={ref} className={cn("bg-gray-50/30 dark:bg-zinc-800/30", className)} {...props} />
     )
 );
 TableHeader.displayName = "TableHeader";
@@ -52,7 +52,7 @@ const TableRow = React.forwardRef<HTMLTableRowElement, React.ComponentProps<type
         <UiRow
             ref={ref}
             className={cn(
-                "border-b border-gray-50 hover:bg-gray-50/50 transition-colors data-[state=selected]:bg-gray-50",
+                "border-b border-gray-50 dark:border-zinc-800 hover:bg-gray-50/50 dark:hover:bg-zinc-800/50 transition-colors data-[state=selected]:bg-gray-50 dark:data-[state=selected]:bg-zinc-800",
                 className
             )}
             {...props}
@@ -66,7 +66,7 @@ const TableHead = React.forwardRef<HTMLTableCellElement, React.ComponentProps<ty
         <UiHead
             ref={ref}
             className={cn(
-                "h-12 px-6 text-xs uppercase tracking-wider text-gray-500 font-semibold bg-transparent",
+                "h-12 px-6 text-xs uppercase tracking-wider text-gray-500 dark:text-zinc-400 font-semibold bg-transparent",
                 className
             )}
             {...props}
@@ -77,7 +77,7 @@ TableHead.displayName = "TableHead";
 
 const TableCell = React.forwardRef<HTMLTableCellElement, React.ComponentProps<typeof UiCell>>(
     ({ className, ...props }, ref) => (
-        <UiCell ref={ref} className={cn("p-4 px-6 align-middle", className)} {...props} />
+        <UiCell ref={ref} className={cn("p-4 px-6 align-middle text-zinc-900 dark:text-zinc-100", className)} {...props} />
     )
 );
 TableCell.displayName = "TableCell";

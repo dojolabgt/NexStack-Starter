@@ -21,7 +21,7 @@ export async function fetchAPI<T>(endpoint: string, options: RequestInit = {}): 
 export interface Service {
     title: string;
     description: string;
-    iconName: "Globe" | "LayoutTemplate" | "Code2";
+    iconName: "Globe" | "LayoutTemplate" | "Code2" | "Shield" | "Container" | "Layers";
 }
 
 export interface Project {
@@ -34,26 +34,41 @@ export interface Project {
 }
 
 export const getHeroData = () => ({
-    title: "Construyendo Experiencias Digitales",
-    subtitle: "Hola, soy un desarrollador enfocado en crear aplicaciones web pulidas y centradas en el usuario.",
-    ctaPrimary: "Ver Proyectos",
-    ctaSecondary: "Servicios",
+    title: "NexStack Starter",
+    subtitle: "El boilerplate definitivo para tus aplicaciones Fullstack. Next.js, NestJS y Docker configurados para producción.",
+    ctaPrimary: "Ver Demo",
+    ctaSecondary: "Documentación",
 });
 
-export const getServices = (): Service[] => [
+export const getFeatures = (): Service[] => [
     {
-        title: "Desarrollo Web",
-        description: "Construcción de sitios web rápidos, responsivos y accesibles utilizando frameworks modernos como Next.js.",
-        iconName: "Globe",
+        title: "Fullstack Type-Safety",
+        description: "Experiencia de desarrollo inigualable con tipado estático de extremo a extremo compartiendo interfaces entre Backend y Frontend.",
+        iconName: "Code2",
     },
     {
-        title: "Arquitectura Frontend",
-        description: "Diseño de sistemas frontend escalables y mantenibles con estructuras de componentes claras.",
+        title: "Autenticación Lista",
+        description: "Sistema de autenticación robusto pre-configurado con JWT, protegiendo rutas y API endpoints desde el primer día.",
+        iconName: "Shield",
+    },
+    {
+        title: "Docker Compose",
+        description: "Entorno de desarrollo y producción containerizado. Levanta base de datos, backend y frontend con un solo comando.",
+        iconName: "Container",
+    },
+    {
+        title: "Arquitectura Modular",
+        description: "Estructura de carpetas escalable en NestJS y componentes reutilizables en Next.js para crecer sin dolor.",
+        iconName: "Layers",
+    },
+    {
+        title: "UI Component Library",
+        description: "Kit de UI moderno y accesible basado en Radix y Tailwind, con modo oscuro automático y animaciones fluidas.",
         iconName: "LayoutTemplate",
     },
     {
-        title: "Integración Backend",
-        description: "Conexión de frontends a backends robustos, asegurando un flujo de datos fluido y seguridad.",
+        title: "Base de Datos ORM",
+        description: "Prisma o TypeORM configurado para manejo de base de datos eficiente y migraciones seguras.",
         iconName: "Code2",
     },
 ];

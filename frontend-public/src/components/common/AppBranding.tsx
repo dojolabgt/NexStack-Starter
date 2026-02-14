@@ -2,7 +2,7 @@ import { useSettings } from '@/hooks/useSettings';
 import Image from 'next/image';
 
 interface AppBrandingProps {
-    variant?: 'default' | 'compact' | 'login';
+    variant?: 'default' | 'compact' | 'login' | 'hero';
     showName?: boolean;
     className?: string;
 }
@@ -45,16 +45,18 @@ export function AppBranding({
     const logoSizeMap = {
         compact: { size: 32, className: 'h-8 w-8' },
         default: { size: 40, className: 'h-10 w-10' },
-        login: { size: 64, className: 'h-16 w-16' }
+        login: { size: 64, className: 'h-16 w-16' },
+        hero: { size: 180, className: 'h-32 w-32 md:h-44 md:w-44' }
     };
 
-    const { size: logoSize, className: logoClassName } = logoSizeMap[variant];
+    const { size: logoSize, className: logoClassName } = logoSizeMap[variant as keyof typeof logoSizeMap];
 
     const textSize = {
         compact: 'text-base',
         default: 'text-xl',
-        login: 'text-2xl'
-    }[variant];
+        login: 'text-2xl',
+        hero: 'text-4xl'
+    }[variant as keyof typeof logoSizeMap];
 
     return (
         <div className={`flex items-center gap-3 ${className}`}>
@@ -72,7 +74,7 @@ export function AppBranding({
             )}
             {showName && (
                 <span className={`font-bold ${textSize}`}>
-                    {settings?.appName || 'Dashboard'}
+                    {settings?.appName || 'NexStack'}
                 </span>
             )}
         </div>

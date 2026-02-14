@@ -123,6 +123,26 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    background: linear-gradient(-170deg,
+        hsl(0 0% 100%) 0%,
+        hsl(0 0% 100%) 30%,
+        hsl(222 100% 82%) 45%,
+        hsl(251 59% 38%) 50%,
+        hsl(286 68% 70%) 55%,
+        hsl(0 0% 100%) 70%,
+        hsl(0 0% 100%) 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+
+  .dark body {
+    background: linear-gradient(-170deg,
+        hsl(240 11% 4%) 0%,
+        hsl(240 6% 10%) 30%,
+        hsl(240 5% 15%) 50%,
+        hsl(240 6% 10%) 70%,
+        hsl(240 11% 4%) 100%);
+    background-attachment: fixed;
   }
 }

@@ -1,8 +1,9 @@
 import axios, { AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { User } from './users-service';
 import { ApiErrorResponse } from './types/api.types';
+import { config } from './env';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const API_URL = config.apiUrl;
 
 // Extend InternalAxiosRequestConfig to include _retry flag
 interface RetryableRequest extends InternalAxiosRequestConfig {

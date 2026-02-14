@@ -53,8 +53,8 @@ export default function UsersPage() {
     return (
         <div className="h-full">
             <div className="flex flex-col gap-4 mb-8">
-                <h1 className="text-3xl font-bold tracking-tight">Gestión de Usuarios</h1>
-                <p className="text-muted-foreground">
+                <h1 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-white">Gestión de Usuarios</h1>
+                <p className="text-muted-foreground dark:text-zinc-400">
                     Administra y gestiona los usuarios del sistema.
                 </p>
             </div>

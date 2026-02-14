@@ -1,6 +1,8 @@
 import { Hero } from "@/components/hero";
-import { Services } from "@/components/services";
-import { Projects } from "@/components/projects";
+import Link from "next/link";
+import { Technologies } from "@/components/common/Technologies";
+import { Features } from "@/components/features";
+import { DashboardPreview } from "@/components/dashboard-preview";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 
@@ -10,8 +12,9 @@ export default function Home() {
             <Header />
             <main className="flex-1">
                 <Hero />
-                <Services />
-                <Projects />
+                <Technologies />
+                <Features />
+                <DashboardPreview />
             </main>
             <Footer />
         </div>

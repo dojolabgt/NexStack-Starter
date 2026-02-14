@@ -24,8 +24,7 @@ import {
 import { cn } from "@/lib/utils";
 import { DashboardHeader } from "@/components/dashboard-header";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getImageUrl } from "@/lib/image-utils";
+import { UserAvatar } from "@/components/common/UserAvatar";
 import { getSettings, type AppSettings } from "@/lib/settings-service";
 import { useAuth } from "@/hooks/useAuth";
 import { AppBranding } from "@/components/common/AppBranding";
@@ -72,7 +71,7 @@ function SidebarContent({
     const collapsed = isCollapsed && !ignoreCollapse;
 
     return (
-        <div className="flex flex-col h-full text-white w-full">
+        <div className="flex flex-col h-full text-zinc-900 dark:text-white w-full">
             {/* Logo Area - Hidden on mobile drawer */}
             {!ignoreCollapse && (
                 <div className={cn(
@@ -82,7 +81,7 @@ function SidebarContent({
                     <AppBranding
                         variant={collapsed ? "compact" : "default"}
                         showName={!collapsed}
-                        className="text-white"
+                        className="text-zinc-900 dark:text-white"
                     />
                 </div>
             )}
@@ -110,15 +109,15 @@ function SidebarContent({
                                 "flex items-center rounded-xl transition-all duration-200 group relative",
                                 collapsed ? "justify-center h-10 w-10 mx-auto" : "px-3 py-2.5",
                                 isActive
-                                    ? "bg-white text-zinc-900 shadow-lg shadow-white/10"
-                                    : "text-zinc-400 hover:bg-white/5 hover:text-white"
+                                    ? "bg-white dark:bg-white text-zinc-900 shadow-lg shadow-white/10"
+                                    : "text-zinc-700 dark:text-zinc-400 hover:bg-zinc-900/10 dark:hover:bg-white/5 hover:text-zinc-900 dark:hover:text-white"
                             )}
                         >
                             <item.icon
                                 className={cn(
                                     "shrink-0 transition-colors",
                                     collapsed ? "h-5 w-5" : "h-4 w-4 mr-3",
-                                    isActive ? "text-zinc-900" : "text-zinc-400 group-hover:text-white"
+                                    isActive ? "text-zinc-900" : "text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white"
                                 )}
                             />
                             {!collapsed && (
@@ -147,11 +146,11 @@ function SidebarContent({
                         <button
                             onClick={() => setIsCollapsed(!isCollapsed)}
                             className={cn(
-                                "flex items-center rounded-xl p-2 text-zinc-500 hover:text-white hover:bg-white/5 transition-all mb-2",
+                                "flex items-center rounded-xl p-2 text-zinc-600 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-900/10 dark:hover:bg-white/5 transition-all mb-2",
                                 collapsed ? "justify-center h-10 w-10 mx-auto" : "w-full justify-between px-3"
                             )}
                         >
-                            {!collapsed && <span className="text-[11px] font-medium uppercase tracking-wider text-zinc-600">Colapsar</span>}
+                            {!collapsed && <span className="text-[11px] font-medium uppercase tracking-wider text-zinc-600 dark:text-zinc-600">Colapsar</span>}
                             {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
                         </button>
                     )}
@@ -162,23 +161,23 @@ function SidebarContent({
                     <DropdownMenuTrigger asChild>
                         <button className={cn(
                             "flex items-center rounded-xl p-2 w-full transition-all duration-200 group outline-none",
-                            collapsed ? "justify-center" : "hover:bg-white/5",
-                            "data-[state=open]:bg-white/5"
+                            collapsed ? "justify-center" : "hover:bg-zinc-900/10 dark:hover:bg-white/5",
+                            "data-[state=open]:bg-zinc-900/10 dark:data-[state=open]:bg-white/5"
                         )}>
-                            <Avatar className="h-9 w-9 border border-white/10 shrink-0">
-                                <AvatarImage src={getImageUrl(user.profileImage)} alt={user.name} />
-                                <AvatarFallback className="bg-zinc-800 text-white text-xs">
-                                    {user.name.charAt(0).toUpperCase()}
-                                </AvatarFallback>
-                            </Avatar>
+                            <UserAvatar
+                                user={user}
+                                size="default"
+                                className="h-9 w-9 border border-white/10 shrink-0"
+                                fallbackClassName="bg-zinc-800 text-white"
+                            />
 
                             {!collapsed && (
                                 <>
                                     <div className="flex flex-col items-start ml-3 min-w-0 text-left flex-1">
-                                        <span className="text-sm font-medium text-white truncate w-full">{user.name}</span>
-                                        <span className="text-xs text-zinc-500 truncate w-full capitalize">{user.role}</span>
+                                        <span className="text-sm font-medium text-zinc-900 dark:text-white truncate w-full">{user.name}</span>
+                                        <span className="text-xs text-zinc-500 dark:text-zinc-500 truncate w-full capitalize">{user.role}</span>
                                     </div>
-                                    <ChevronUp className="h-4 w-4 text-zinc-500" />
+                                    <ChevronUp className="h-4 w-4 text-zinc-500 dark:text-zinc-500" />
                                 </>
                             )}
                         </button>
@@ -286,9 +285,9 @@ export default function DashboardLayout({
     const navItems = allNavItems.filter(item => item.roles.includes(user.role));
 
     return (
-        <div className="min-h-screen bg-zinc-950 flex flex-col md:flex-row font-sans selection:bg-primary/20 overflow-hidden relative">
+        <div className="min-h-screen flex flex-col md:flex-row font-sans selection:bg-primary/20 overflow-hidden relative">
             {/* Mobile Header - Fixed at top */}
-            <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-zinc-950 border-b border-white/5 px-4 py-3 flex items-center justify-between flex-nowrap gap-4">
+            <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-zinc-900/90 dark:bg-zinc-950/90 backdrop-blur-xl border-b border-white/5 px-4 py-3 flex items-center justify-between flex-nowrap gap-4">
                 <div className="flex-1 min-w-0 overflow-hidden">
                     <AppBranding variant="compact" className="text-white truncate" />
                 </div>
@@ -310,7 +309,7 @@ export default function DashboardLayout({
                 >
                     <div
                         className={cn(
-                            "fixed left-0 top-0 bottom-0 w-64 bg-zinc-950 border-r border-white/5 transition-transform duration-300 transform pt-16",
+                            "fixed left-0 top-0 bottom-0 w-64 bg-zinc-900/95 dark:bg-zinc-950/95 backdrop-blur-xl border-r border-white/5 transition-transform duration-300 transform pt-16",
                             isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
                         )}
                         onClick={e => e.stopPropagation()}
@@ -332,7 +331,7 @@ export default function DashboardLayout({
 
             {/* Desktop Sidebar */}
             <aside className={cn(
-                "hidden md:flex flex-col fixed top-0 left-0 bottom-0 z-30 transition-all duration-300 ease-in-out border-r border-white/5 bg-zinc-950",
+                "hidden md:flex flex-col fixed top-0 left-0 bottom-0 z-30 transition-all duration-300 ease-in-out border-r border-white/10 bg-white/85 dark:bg-zinc-900/90 backdrop-blur-xl",
                 isCollapsed ? "w-16" : "w-56"
             )}>
                 <SidebarContent
@@ -355,16 +354,16 @@ export default function DashboardLayout({
             )}>
                 {/* Main Canvas (Scrollable) */}
                 <main className="flex-1 p-2 md:p-3 lg:p-4 md:pt-[1.5rem] overflow-hidden">
-                    <div className="bg-white rounded-[2.5rem] shadow-xl shadow-zinc-200/50 h-full border border-zinc-100 relative flex flex-col overflow-hidden">
+                    <div className="bg-white/90 dark:bg-zinc-900/85 backdrop-blur-xl rounded-[2.5rem] shadow-xl shadow-zinc-200/50 dark:shadow-zinc-950/50 h-full border border-white/10 dark:border-white/5 relative flex flex-col overflow-hidden">
                         {/* Header Integrated */}
-                        <div className="shrink-0 px-6 pt-6 md:px-8 md:pt-8 bg-white z-10">
+                        <div className="shrink-0 px-6 pt-6 md:px-8 md:pt-8 bg-white/60 dark:bg-zinc-900/70 backdrop-blur-sm z-10">
                             <DashboardHeader user={user} />
                         </div>
 
                         {/* Scrollable Content */}
-                        <div className="flex-1 overflow-y-auto scrollbar-hide p-6 md:p-8 lg:p-10 relative bg-slate-50/50">
+                        <div className="flex-1 overflow-y-auto scrollbar-hide p-6 md:p-8 lg:p-10 relative bg-slate-50/50 dark:bg-zinc-950/30">
                             {/* Decorative background element */}
-                            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-gray-50 to-transparent rounded-bl-full -z-10 opacity-50 pointer-events-none" />
+                            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-gray-50 dark:from-zinc-800/20 to-transparent rounded-bl-full -z-10 opacity-50 pointer-events-none" />
                             {children}
                         </div>
                     </div>

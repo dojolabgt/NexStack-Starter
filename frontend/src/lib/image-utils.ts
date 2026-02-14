@@ -1,4 +1,6 @@
-const API_URL = process.env.NEXT_PUBLIC_IMAGE_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+import { config } from './env';
+
+const API_URL = config.imageBackendUrl || config.apiUrl;
 
 /**
  * Get the full URL for a profile image

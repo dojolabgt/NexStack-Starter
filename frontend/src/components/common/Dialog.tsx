@@ -28,7 +28,7 @@ const DialogContent = React.forwardRef<
     <UiDialogContent
         ref={ref}
         className={cn(
-            "rounded-3xl border-0 shadow-2xl shadow-zinc-900/20 bg-white p-0 overflow-hidden sm:max-w-[450px]",
+            "rounded-3xl border-0 shadow-2xl shadow-zinc-900/20 dark:shadow-zinc-950/80 bg-white dark:bg-zinc-900 p-0 overflow-hidden sm:max-w-[450px]",
             className
         )}
         {...props}
@@ -44,7 +44,7 @@ const DialogHeader = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
     <UiDialogHeader
         className={cn(
-            "px-6 pt-6 pb-4 border-b border-gray-100 bg-gray-50/50 text-left",
+            "px-6 pt-6 pb-4 border-b border-gray-100 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-800/50 text-left",
             className
         )}
         {...props}
@@ -70,7 +70,7 @@ const DialogTitle = React.forwardRef<
     <UiDialogTitle
         ref={ref}
         className={cn(
-            "text-xl font-bold tracking-tight text-zinc-900",
+            "text-xl font-bold tracking-tight text-zinc-900 dark:text-white",
             className
         )}
         {...props}
@@ -84,7 +84,7 @@ const DialogDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
     <UiDialogDescription
         ref={ref}
-        className={cn("text-zinc-500", className)}
+        className={cn("text-zinc-500 dark:text-zinc-400", className)}
         {...props}
     />
 ));

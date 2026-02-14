@@ -139,8 +139,8 @@ export default function AppSettingsPage() {
     return (
         <div className="flex flex-col gap-6 h-full">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight text-gray-900">Configuración de la Aplicación</h1>
-                <p className="text-muted-foreground mt-2">
+                <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Configuración de la Aplicación</h1>
+                <p className="text-muted-foreground dark:text-zinc-400 mt-2">
                     Personaliza la apariencia y comportamiento de tu aplicación
                 </p>
             </div>
@@ -211,8 +211,8 @@ export default function AppSettingsPage() {
                                 {/* Logo Upload */}
                                 <div className="space-y-3">
                                     <Label>Logo Principal</Label>
-                                    <div className="flex items-center gap-6 p-4 border border-border/40 rounded-lg bg-gray-50/30">
-                                        <div className="h-20 w-20 rounded-lg border border-border bg-white flex items-center justify-center shadow-sm overflow-hidden shrink-0 relative">
+                                    <div className="flex items-center gap-6 p-4 border border-border/40 dark:border-zinc-700 rounded-lg bg-gray-50/30 dark:bg-zinc-800/30">
+                                        <div className="h-20 w-20 rounded-lg border border-border dark:border-zinc-700 bg-white dark:bg-zinc-900 flex items-center justify-center shadow-sm overflow-hidden shrink-0 relative">
                                             {settings?.appLogo ? (
                                                 <Image
                                                     src={getImageUrl(settings.appLogo) || ''}
@@ -221,7 +221,7 @@ export default function AppSettingsPage() {
                                                     className="object-contain p-2"
                                                 />
                                             ) : (
-                                                <span className="text-2xl font-bold text-muted-foreground/30">
+                                                <span className="text-2xl font-bold text-muted-foreground/30 dark:text-zinc-600">
                                                     LOGO
                                                 </span>
                                             )}
@@ -244,7 +244,7 @@ export default function AppSettingsPage() {
                                                     Subir Nuevo
                                                 </Button>
                                             </div>
-                                            <p className="text-xs text-muted-foreground">
+                                            <p className="text-xs text-muted-foreground dark:text-zinc-400">
                                                 Recomendado: PNG/JPG. Max 5MB. Fondo transparente.
                                             </p>
                                         </div>
@@ -254,8 +254,8 @@ export default function AppSettingsPage() {
                                 {/* Favicon Upload */}
                                 <div className="space-y-3">
                                     <Label>Favicon</Label>
-                                    <div className="flex items-center gap-6 p-4 border border-border/40 rounded-lg bg-gray-50/30">
-                                        <div className="h-12 w-12 rounded border border-border bg-white flex items-center justify-center shadow-sm overflow-hidden shrink-0 relative">
+                                    <div className="flex items-center gap-6 p-4 border border-border/40 dark:border-zinc-700 rounded-lg bg-gray-50/30 dark:bg-zinc-800/30">
+                                        <div className="h-12 w-12 rounded border border-border dark:border-zinc-700 bg-white dark:bg-zinc-900 flex items-center justify-center shadow-sm overflow-hidden shrink-0 relative">
                                             {settings?.appFavicon ? (
                                                 <Image
                                                     src={getImageUrl(settings.appFavicon) || ''}
@@ -264,7 +264,7 @@ export default function AppSettingsPage() {
                                                     className="object-contain"
                                                 />
                                             ) : (
-                                                <SettingsIcon className="h-6 w-6 text-muted-foreground/30" />
+                                                <SettingsIcon className="h-6 w-6 text-muted-foreground/30 dark:text-zinc-600" />
                                             )}
                                         </div>
                                         <div className="flex-1 space-y-2">
@@ -284,7 +284,7 @@ export default function AppSettingsPage() {
                                             >
                                                 Subir Favicon
                                             </Button>
-                                            <p className="text-xs text-muted-foreground">
+                                            <p className="text-xs text-muted-foreground dark:text-zinc-400">
                                                 Icono del navegador. 32x32px recomendado.
                                             </p>
                                         </div>
@@ -347,10 +347,10 @@ export default function AppSettingsPage() {
                             </CardHeader>
                             <CardContent className="space-y-6">
                                 {/* Allow Registration */}
-                                <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50/50 border border-border/40">
+                                <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50/50 dark:bg-zinc-800/30 border border-border/40 dark:border-zinc-700">
                                     <div className="space-y-0.5">
-                                        <Label htmlFor="allowRegistration" className="text-base font-medium">Registro de Usuarios</Label>
-                                        <p className="text-sm text-muted-foreground">
+                                        <Label htmlFor="allowRegistration" className="text-base font-medium text-zinc-900 dark:text-white">Registro de Usuarios</Label>
+                                        <p className="text-sm text-muted-foreground dark:text-zinc-400">
                                             Permitir que nuevos usuarios se registren libremente en la plataforma.
                                         </p>
                                     </div>
@@ -362,10 +362,10 @@ export default function AppSettingsPage() {
                                 </div>
 
                                 {/* Maintenance Mode */}
-                                <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50/50 border border-border/40">
+                                <div className="flex items-center justify-between p-4 rounded-lg bg-gray-50/50 dark:bg-zinc-800/30 border border-border/40 dark:border-zinc-700">
                                     <div className="space-y-0.5">
-                                        <Label htmlFor="maintenanceMode" className="text-base font-medium">Modo Mantenimiento</Label>
-                                        <p className="text-sm text-muted-foreground">
+                                        <Label htmlFor="maintenanceMode" className="text-base font-medium text-zinc-900 dark:text-white">Modo Mantenimiento</Label>
+                                        <p className="text-sm text-muted-foreground dark:text-zinc-400">
                                             Bloquea el acceso a usuarios no administradores y muestra una página de mantenimiento.
                                         </p>
                                     </div>

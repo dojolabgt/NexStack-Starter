@@ -1,5 +1,6 @@
 import { useSettings } from '@/hooks/useSettings';
 import Image from 'next/image';
+import { config } from '@/lib/env';
 
 interface AppBrandingProps {
     variant?: 'default' | 'compact' | 'login';
@@ -14,7 +15,7 @@ export function AppBranding({
 }: AppBrandingProps) {
     const { settings, isLoading } = useSettings();
 
-    const backendUrl = process.env.NEXT_PUBLIC_IMAGE_BACKEND_URL || 'http://backend:4000';
+    const backendUrl = config.imageBackendUrl || config.apiUrl;
 
     if (isLoading) {
         return (

@@ -26,7 +26,7 @@ const SelectTrigger = React.forwardRef<
     <UiSelectTrigger
         ref={ref}
         className={cn(
-            "h-11 rounded-xl border-gray-200 bg-gray-50/30 focus:bg-white focus:border-indigo-500 transition-all font-medium text-zinc-800",
+            "h-11 rounded-xl border-gray-200 dark:border-zinc-700 bg-gray-50/30 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-800 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all font-medium text-zinc-800 dark:text-zinc-100",
             className
         )}
         {...props}
@@ -43,7 +43,7 @@ const SelectContent = React.forwardRef<
     <UiSelectContent
         ref={ref}
         className={cn(
-            "rounded-xl border-gray-100 shadow-xl bg-white",
+            "rounded-xl border-gray-100 dark:border-zinc-800 shadow-xl bg-white dark:bg-zinc-900",
             className
         )}
         position={position}
@@ -60,7 +60,7 @@ const SelectItem = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
     <UiSelectItem
         ref={ref}
-        className={cn("cursor-pointer focus:bg-indigo-50 focus:text-indigo-900 rounded-lg my-0.5", className)}
+        className={cn("cursor-pointer text-zinc-700 dark:text-zinc-300 focus:bg-indigo-50 dark:focus:bg-indigo-950/50 focus:text-indigo-900 dark:focus:text-indigo-100 rounded-lg my-0.5", className)}
         {...props}
     >
         {children}

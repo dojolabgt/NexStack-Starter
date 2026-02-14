@@ -13,7 +13,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             <UiInput
                 ref={ref}
                 className={cn(
-                    "h-11 rounded-xl border-gray-200 bg-gray-50/30 focus:bg-white focus:border-indigo-500 transition-all font-medium text-zinc-800 placeholder:text-gray-400",
+                    "h-11 rounded-xl border-gray-200 dark:border-zinc-700 bg-gray-50/30 dark:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-800 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all font-medium text-zinc-800 dark:text-zinc-100 placeholder:text-gray-400 dark:placeholder:text-zinc-500",
                     className
                 )}
                 {...props}

@@ -9,7 +9,6 @@ import { useSettings } from "@/hooks/useSettings"; // Use the hook instead of di
 import { getImageUrl } from "@/lib/image-utils";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { TopLoader } from "@/components/ui/top-loader";
-import { Preloader } from "@/components/common/Preloader";
 
 const inter = Inter({
     variable: "--font-inter",
@@ -69,7 +68,6 @@ export default function RootLayout({
             <body
                 className={`${inter.variable} ${generalSans.variable} ${geistMono.variable} font-body antialiased`}
             >
-                <Preloader />
                 <TopLoader />
                 <ErrorBoundary>
                     {children}

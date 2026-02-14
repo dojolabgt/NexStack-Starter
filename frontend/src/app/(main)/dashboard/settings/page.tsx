@@ -8,12 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar } from "@/components/common/UserAvatar";
 import { Camera, Save, Loader2, Lock, User as UserIcon } from "lucide-react";
 import { ImageCropperDialog } from "@/components/image-cropper-dialog";
 import api from "@/lib/auth";
 import { useRouter } from "next/navigation";
-import { getImageUrl } from "@/lib/image-utils";
 import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 
@@ -178,8 +177,8 @@ export default function SettingsPage() {
     return (
         <div className="flex flex-col gap-6 h-full">
             <div className="space-y-1">
-                <h1 className="text-3xl font-bold tracking-tight text-gray-900">Configuración de Cuenta</h1>
-                <p className="text-muted-foreground">
+                <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">Configuración de Cuenta</h1>
+                <p className="text-muted-foreground dark:text-zinc-400">
                     Gestiona tu información personal y seguridad.
                 </p>
             </div>
@@ -205,12 +204,12 @@ export default function SettingsPage() {
                                 {/* Photo Upload Section */}
                                 <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 pb-6 border-b border-border/50">
                                     <div className="relative group">
-                                        <Avatar className="h-28 w-28 border-4 border-white shadow-md">
-                                            <AvatarImage src={getImageUrl(user.profileImage)} alt={user.name} className="object-cover" />
-                                            <AvatarFallback className="text-3xl bg-gradient-to-br from-indigo-50 to-indigo-100 text-indigo-600">
-                                                {user.name.charAt(0).toUpperCase()}
-                                            </AvatarFallback>
-                                        </Avatar>
+                                        <UserAvatar
+                                            user={user}
+                                            size="xl"
+                                            className="border-4 border-white shadow-md"
+                                            fallbackClassName="bg-gradient-to-br from-indigo-50 to-indigo-100 text-indigo-600"
+                                        />
                                         <Label
                                             htmlFor="picture"
                                             className="absolute bottom-0 right-0 p-2 bg-zinc-900 text-white rounded-full cursor-pointer hover:bg-zinc-800 transition-all shadow-lg border-2 border-white"
@@ -226,8 +225,8 @@ export default function SettingsPage() {
                                         </Label>
                                     </div>
                                     <div className="text-center sm:text-left space-y-1 pt-2">
-                                        <h3 className="font-medium text-gray-900">Foto de Perfil</h3>
-                                        <p className="text-sm text-muted-foreground max-w-xs">
+                                        <h3 className="font-medium text-gray-900 dark:text-white">Foto de Perfil</h3>
+                                        <p className="text-sm text-muted-foreground dark:text-zinc-400 max-w-xs">
                                             Sube una imagen para personalizar tu perfil.
                                             <br className="hidden sm:block" />
                                             Formatos permitidos: JPG, PNG, GIF.
@@ -367,16 +366,16 @@ export default function SettingsPage() {
             </div>
 
             {/* Account Metadata Card */}
-            <Card className="border-border/60 shadow-sm bg-gray-50/50">
+            <Card className="border-border/60 shadow-sm bg-gray-50/50 dark:bg-zinc-800/30">
                 <CardContent className="py-4">
-                    <div className="flex flex-col sm:flex-row justify-between text-sm text-muted-foreground gap-2">
+                    <div className="flex flex-col sm:flex-row justify-between text-sm text-muted-foreground dark:text-zinc-400 gap-2">
                         <div className="flex gap-2">
-                            <span className="font-medium">ID de Usuario:</span>
-                            <span className="font-mono text-xs bg-gray-200 px-2 py-0.5 rounded">{user.id}</span>
+                            <span className="font-medium text-zinc-700 dark:text-zinc-300">ID de Usuario:</span>
+                            <span className="font-mono text-xs bg-gray-200 dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 px-2 py-0.5 rounded">{user.id}</span>
                         </div>
                         <div className="flex gap-2">
-                            <span className="font-medium">Rol:</span>
-                            <span className="capitalize px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded text-xs font-semibold">{user.role}</span>
+                            <span className="font-medium text-zinc-700 dark:text-zinc-300">Rol:</span>
+                            <span className="capitalize px-2 py-0.5 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 rounded text-xs font-semibold">{user.role}</span>
                         </div>
                     </div>
                 </CardContent>

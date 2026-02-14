@@ -15,7 +15,7 @@ const Label = React.forwardRef<
     <UiLabel
         ref={ref}
         className={cn(
-            variant === "uppercase" && "text-xs font-semibold uppercase tracking-wider text-zinc-500",
+            variant === "uppercase" && "text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400",
             className
         )}
         {...props}
