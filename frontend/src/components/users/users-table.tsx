@@ -188,7 +188,8 @@ export function UsersTable() {
                                                         <UserAvatar
                                                             user={user}
                                                             size="default"
-                                                            className="border border-gray-100 dark:border-zinc-700 shadow-sm transition-transform group-hover:scale-105"
+                                                            showProfileCard={true}
+                                                            className="border border-gray-100 dark:border-zinc-700 shadow-sm"
                                                             fallbackClassName="bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-950 dark:to-zinc-900 text-indigo-600 dark:text-indigo-400 font-medium"
                                                         />
                                                         <span className="text-sm font-medium text-gray-700 dark:text-zinc-300">{user.name}</span>
